@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 40" fill="none">
+  <style>
+    .letter { fill: white; font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; font-size: 32px; font-weight: 300; letter-spacing: 4px; }
+  </style>
+  
+  <!-- C -->
+  <text x="0" y="30" class="letter">C</text>
+  
+  <!-- Y -->
+  <text x="28" y="30" class="letter">Y</text>
+  
+  <!-- Waveform M -->
+  <g transform="translate(58, 5)">
+    <path d="M0 30 Q10 30 16 20 Q22 8 32 8 Q42 8 48 20 Q54 30 64 30" stroke="white" stroke-width="1.5" fill="none"/>
+    <path d="M0 30 Q10 27 16 17 Q22 5 32 5 Q42 5 48 17 Q54 27 64 30" stroke="white" stroke-width="1.5" fill="none"/>
+    <path d="M0 30 Q10 24 16 14 Q22 2 32 2 Q42 2 48 14 Q54 24 64 30" stroke="white" stroke-width="1.5" fill="none"/>
+  </g>
+  
+  <!-- ATICS -->
+  <text x="125" y="30" class="letter">A</text>
+  <text x="155" y="30" class="letter">T</text>
+  <text x="180" y="30" class="letter">I</text>
+  <text x="200" y="30" class="letter">C</text>
+  <text x="228" y="30" class="letter">S</text>
+</svg>

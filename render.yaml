@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: drum-machine-backend
+    env: node
+    plan: free
+    rootDir: backend
+    region: oregon
+    branch: main
+    buildCommand: |
+      apt-get update && apt-get install -y ffmpeg
+      npm install
+      npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: DATA_DIR
+        value: /data
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 10
+    healthCheckPath: /health
+

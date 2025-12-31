@@ -1,0 +1,328 @@
+import { useState, useRef } from 'react';
+import { generateLayer, searchSamples, getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
+import type { SampleCategory, GenerateLayerSettings } from '../types';
+import { CATEGORIES } from '../types';
+
+interface EasyModeProps {
+  onGenerated?: () => void;
+  onSoundGenerated?: (path: string, category: string) => void;
+}
+
+// Categories that should NOT have body pitch changes
+const NO_PITCH_CATEGORIES: SampleCategory[] = ['kick', 'donk', '808'];
+
+// Max saturation for easy mode (5%)
+const MAX_SATURATION = 0.05;
+
+// Preset settings for different sound types (no reverb in easy mode)
+const SOUND_PRESETS: Record<SampleCategory, GenerateLayerSettings> = {
+  kick: {
+    bodySemitones: 0,
+    transientGainDb: 3,
+    textureHpHz: 300,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 6,
+    clipperOutGainDb: -3,
+    trimDb: -60,
+    decayMs: 0,
+    normalizePeakDb: -0.5,
+  },
+  snare: {
+    bodySemitones: 0,
+    transientGainDb: 4,
+    textureHpHz: 400,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 4,
+    clipperOutGainDb: -2,
+    trimDb: -60,
+    decayMs: 0,
+    normalizePeakDb: -0.8,
+  },
+  hat: {
+    bodySemitones: 2,
+    transientGainDb: 2,
+    textureHpHz: 800,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 2,
+    clipperOutGainDb: 0,
+    trimDb: -50,
+    decayMs: 0,
+    normalizePeakDb: -1,
+  },
+  clap: {
+    bodySemitones: 0,
+    transientGainDb: 5,
+    textureHpHz: 500,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 4,
+    clipperOutGainDb: -2,
+    trimDb: -60,
+    decayMs: 0,
+    normalizePeakDb: -0.8,
+  },
+  perc: {
+    bodySemitones: 0,
+    transientGainDb: 3,
+    textureHpHz: 600,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 3,
+    clipperOutGainDb: -1,
+    trimDb: -55,
+    decayMs: 0,
+    normalizePeakDb: -0.8,
+  },
+  '808': {
+    bodySemitones: 0,
+    transientGainDb: 2,
+    textureHpHz: 200,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 8,
+    clipperOutGainDb: -4,
+    trimDb: -70,
+    decayMs: 0,
+    normalizePeakDb: -0.5,
+  },
+  donk: {
+    bodySemitones: 0,
+    transientGainDb: 4,
+    textureHpHz: 400,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 6,
+    clipperOutGainDb: -3,
+    trimDb: -60,
+    decayMs: 150,
+    normalizePeakDb: -0.5,
+  },
+  other: {
+    bodySemitones: 0,
+    transientGainDb: 3,
+    textureHpHz: 400,
+    saturation: 0.05,
+    reverbMix: 0,
+    clipperInGainDb: 4,
+    clipperOutGainDb: -2,
+    trimDb: -60,
+    decayMs: 0,
+    normalizePeakDb: -0.8,
+  },
+};
+
+const CATEGORY_ICONS: Record<SampleCategory, string> = {
+  kick: '🥁',
+  snare: '🪘',
+  hat: '🎩',
+  clap: '👏',
+  perc: '🔔',
+  '808': '🔊',
+  donk: '💥',
+  other: '🎵',
+};
+
+export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
+  const [selectedCategory, setSelectedCategory] = useState<SampleCategory>('kick');
+  const [generating, setGenerating] = useState(false);
+  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [playingGenerated, setPlayingGenerated] = useState(false);
+  const [generationCount, setGenerationCount] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+
+    try {
+      // Fetch samples from the selected category
+      const samples = await searchSamples(undefined, selectedCategory);
+
+      if (samples.length < 2) {
+        setError(`Need at least 2 samples in ${selectedCategory} category. Add more samples in the Library tab!`);
+        return;
+      }
+
+      // Shuffle and pick random samples
+      const shuffled = [...samples].sort(() => Math.random() - 0.5);
+      const bodySample = shuffled[0];
+      const transientSample = shuffled[1];
+      const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
+
+      // Get preset settings with slight randomization
+      const baseSettings = SOUND_PRESETS[selectedCategory];
+      const noPitch = NO_PITCH_CATEGORIES.includes(selectedCategory);
+      
+      const settings: GenerateLayerSettings = {
+        ...baseSettings,
+        // Add slight variations (but respect category restrictions)
+        bodySemitones: noPitch ? 0 : baseSettings.bodySemitones + Math.floor(Math.random() * 5) - 2,
+        transientGainDb: baseSettings.transientGainDb + Math.floor(Math.random() * 5) - 2,
+        // Cap saturation at 5% for all easy mode generations
+        saturation: Math.min(MAX_SATURATION, Math.max(0, baseSettings.saturation + (Math.random() * 0.03 - 0.015))),
+        // No reverb in easy mode
+        reverbMix: 0,
+        clipperInGainDb: baseSettings.clipperInGainDb + Math.floor(Math.random() * 4) - 2,
+      };
+
+      // Generate without output folder (for download)
+      const result = await generateLayer({
+        bodyPath: bodySample.path,
+        transientPath: transientSample.path,
+        texturePath: textureSample?.path,
+        settings,
+      });
+
+      setLastGenerated(result.outputPath);
+      setGenerationCount(prev => prev + 1);
+      onSoundGenerated?.(result.outputPath, selectedCategory);
+      onGenerated?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handlePlayGenerated = () => {
+    if (!lastGenerated) return;
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    if (playingGenerated) {
+      setPlayingGenerated(false);
+      return;
+    }
+
+    const audio = new Audio(getAudioPreviewUrl(lastGenerated));
+    audio.onended = () => setPlayingGenerated(false);
+    audio.play();
+    audioRef.current = audio;
+    setPlayingGenerated(true);
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
+      {/* Title */}
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-drum-text mb-2">Easy Mode</h2>
+        <p className="text-drum-muted">Pick a sound type and smash that button!</p>
+      </div>
+
+      {/* Category Selector */}
+      <div className="flex flex-wrap justify-center gap-3 max-w-xl">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-6 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
+              selectedCategory === cat
+                ? 'bg-drum-accent text-white scale-105 shadow-lg shadow-drum-accent/30'
+                : 'bg-drum-elevated text-drum-muted hover:bg-drum-surface hover:text-drum-text'
+            }`}
+          >
+            <span className="text-2xl">{CATEGORY_ICONS[cat]}</span>
+            <span className="capitalize">{cat}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Big Generate Button */}
+      <div className="relative">
+        {/* Glow effect */}
+        <div 
+          className={`absolute inset-0 rounded-full bg-orange-500 blur-xl transition-opacity duration-300 ${
+            generating ? 'opacity-50 animate-pulse' : 'opacity-30'
+          }`} 
+        />
+        
+        <button
+          onClick={handleGenerate}
+          disabled={generating}
+          className={`relative w-48 h-48 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 
+            text-white text-2xl font-bold shadow-2xl 
+            transition-all duration-200 
+            flex flex-col items-center justify-center gap-2
+            ${generating 
+              ? 'scale-95 opacity-80' 
+              : 'hover:scale-105 hover:shadow-orange-500/50 active:scale-95'
+            }`}
+        >
+          {generating ? (
+            <>
+              <span className="text-5xl animate-spin">⚡</span>
+              <span className="text-lg">Creating...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-5xl">⚡</span>
+              <span>GENERATE</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Generation Counter */}
+      {generationCount > 0 && (
+        <p className="text-drum-muted text-sm">
+          {generationCount} sound{generationCount !== 1 ? 's' : ''} generated this session
+        </p>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 max-w-md text-center">
+          {error}
+          <button onClick={() => setError(null)} className="ml-4 underline">Dismiss</button>
+        </div>
+      )}
+
+      {/* Last Generated Result */}
+      {lastGenerated && !error && (
+        <div className="card bg-gradient-to-r from-orange-500/20 to-drum-accent/10 border-orange-500/50 max-w-md w-full">
+          <div className="flex flex-col items-center gap-4">
+            <div className="text-center">
+              <div className="text-lg text-orange-400 font-semibold flex items-center justify-center gap-2">
+                ✓ Sound Ready!
+              </div>
+              <div className="font-mono text-sm text-drum-text mt-1">
+                {lastGenerated.split('/').pop()}
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handlePlayGenerated}
+                className={`btn ${
+                  playingGenerated
+                    ? 'btn-primary'
+                    : 'btn-secondary'
+                }`}
+              >
+                {playingGenerated ? '⏹ Stop' : '▶ Preview'}
+              </button>
+              <a
+                href={getAudioDownloadUrl(lastGenerated)}
+                className="btn bg-orange-500 hover:bg-orange-600 text-white px-6"
+                download
+              >
+                ⬇ Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tip */}
+      <p className="text-drum-muted text-sm text-center max-w-md">
+        💡 For more control over samples and effects, use the <strong>Generator</strong> tab
+      </p>
+    </div>
+  );
+}
+
