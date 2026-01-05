@@ -49,23 +49,23 @@ export async function generateLayeredSample(
 
   // Use temp directory if no output dir specified
   const useTemp = !outputDir || outputDir.trim() === '';
-  if (useTemp) {
-    outputDir = TEMP_OUTPUT_DIR;
-    // Generate a unique filename if none provided
-    if (!fileName || fileName.trim() === '') {
-      tempFileCounter++;
-      const timestamp = Date.now();
-      const categoryLabel = request.category 
-        ? request.category.charAt(0).toUpperCase() + request.category.slice(1)
-        : 'Generated';
-      fileName = `ANDRO_${categoryLabel}_${timestamp}_${tempFileCounter}.wav`;
-    }
+  const finalOutputDir = useTemp ? TEMP_OUTPUT_DIR : outputDir;
+  
+  // Generate a unique filename if none provided
+  let finalFileName = fileName;
+  if (!finalFileName || finalFileName.trim() === '') {
+    tempFileCounter++;
+    const timestamp = Date.now();
+    const categoryLabel = request.category 
+      ? request.category.charAt(0).toUpperCase() + request.category.slice(1)
+      : 'Generated';
+    finalFileName = `ANDRO_${categoryLabel}_${timestamp}_${tempFileCounter}.wav`;
   }
 
   // Ensure output directory exists
-  await fs.mkdir(outputDir, { recursive: true });
+  await fs.mkdir(finalOutputDir, { recursive: true });
 
-  const outputPath = path.join(outputDir, fileName);
+  const outputPath = path.join(finalOutputDir, finalFileName);
 
   // Build FFmpeg command
   const inputs: string[] = [];
