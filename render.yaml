@@ -1,24 +1,33 @@
 services:
+  # Backend API
   - type: web
-    name: drum-machine-backend
-    env: node
+    name: drum-machine-api
+    runtime: node
     plan: free
     rootDir: backend
     region: oregon
     branch: main
-    buildCommand: |
-      apt-get update && apt-get install -y ffmpeg
-      npm install
-      npm run build
-    startCommand: npm run start
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
-        value: 18
-      - key: DATA_DIR
-        value: /data
-    disk:
-      name: data
-      mountPath: /data
-      sizeGB: 10
+        value: "20"
     healthCheckPath: /health
 
+  # Frontend Static Site
+  - type: web
+    name: drum-machine-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    envVars:
+      - key: VITE_API_BASE
+        sync: false
