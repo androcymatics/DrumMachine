@@ -201,6 +201,7 @@ fastify.post<{
     clipperInGainDb: 0,
     clipperOutGainDb: 0,
     trimDb: -60,
+    decayMs: 0,
     normalizePeakDb: -0.8
   };
   
