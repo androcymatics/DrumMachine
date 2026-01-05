@@ -55,7 +55,10 @@ export async function generateLayeredSample(
     if (!fileName || fileName.trim() === '') {
       tempFileCounter++;
       const timestamp = Date.now();
-      fileName = `ANDRO_Generated_${timestamp}_${tempFileCounter}.wav`;
+      const categoryLabel = request.category 
+        ? request.category.charAt(0).toUpperCase() + request.category.slice(1)
+        : 'Generated';
+      fileName = `ANDRO_${categoryLabel}_${timestamp}_${tempFileCounter}.wav`;
     }
   }
 

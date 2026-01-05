@@ -125,6 +125,8 @@ const CATEGORY_ICONS: Record<SampleCategory, string> = {
   other: '🎵',
 };
 
+const BATCH_SIZES = [1, 2, 3, 5, 10];
+
 export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [selectedCategory, setSelectedCategory] = useState<SampleCategory>('kick');
   const [generating, setGenerating] = useState(false);
@@ -132,11 +134,14 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [error, setError] = useState<string | null>(null);
   const [playingGenerated, setPlayingGenerated] = useState(false);
   const [generationCount, setGenerationCount] = useState(0);
+  const [batchSize, setBatchSize] = useState(1);
+  const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleGenerate = async () => {
     setGenerating(true);
     setError(null);
+    setGeneratingProgress({ current: 0, total: batchSize });
 
     try {
       // Fetch samples from the selected category
@@ -147,44 +152,52 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         return;
       }
 
-      // Shuffle and pick random samples
-      const shuffled = [...samples].sort(() => Math.random() - 0.5);
-      const bodySample = shuffled[0];
-      const transientSample = shuffled[1];
-      const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
+      // Generate multiple samples based on batch size
+      for (let i = 0; i < batchSize; i++) {
+        setGeneratingProgress({ current: i + 1, total: batchSize });
 
-      // Get preset settings with slight randomization
-      const baseSettings = SOUND_PRESETS[selectedCategory];
-      const noPitch = NO_PITCH_CATEGORIES.includes(selectedCategory);
+        // Shuffle and pick random samples for each generation
+        const shuffled = [...samples].sort(() => Math.random() - 0.5);
+        const bodySample = shuffled[0];
+        const transientSample = shuffled[1];
+        const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
+
+        // Get preset settings with slight randomization
+        const baseSettings = SOUND_PRESETS[selectedCategory];
+        const noPitch = NO_PITCH_CATEGORIES.includes(selectedCategory);
+        
+        const settings: GenerateLayerSettings = {
+          ...baseSettings,
+          // Add slight variations (but respect category restrictions)
+          bodySemitones: noPitch ? 0 : baseSettings.bodySemitones + Math.floor(Math.random() * 5) - 2,
+          transientGainDb: baseSettings.transientGainDb + Math.floor(Math.random() * 5) - 2,
+          // Cap saturation at 5% for all easy mode generations
+          saturation: Math.min(MAX_SATURATION, Math.max(0, baseSettings.saturation + (Math.random() * 0.03 - 0.015))),
+          // No reverb in easy mode
+          reverbMix: 0,
+          clipperInGainDb: baseSettings.clipperInGainDb + Math.floor(Math.random() * 4) - 2,
+        };
+
+        // Generate without output folder (for download)
+        const result = await generateLayer({
+          bodyPath: bodySample.path,
+          transientPath: transientSample.path,
+          texturePath: textureSample?.path,
+          settings,
+          category: selectedCategory,
+        });
+
+        setLastGenerated(result.outputPath);
+        setGenerationCount(prev => prev + 1);
+        onSoundGenerated?.(result.outputPath, selectedCategory);
+      }
       
-      const settings: GenerateLayerSettings = {
-        ...baseSettings,
-        // Add slight variations (but respect category restrictions)
-        bodySemitones: noPitch ? 0 : baseSettings.bodySemitones + Math.floor(Math.random() * 5) - 2,
-        transientGainDb: baseSettings.transientGainDb + Math.floor(Math.random() * 5) - 2,
-        // Cap saturation at 5% for all easy mode generations
-        saturation: Math.min(MAX_SATURATION, Math.max(0, baseSettings.saturation + (Math.random() * 0.03 - 0.015))),
-        // No reverb in easy mode
-        reverbMix: 0,
-        clipperInGainDb: baseSettings.clipperInGainDb + Math.floor(Math.random() * 4) - 2,
-      };
-
-      // Generate without output folder (for download)
-      const result = await generateLayer({
-        bodyPath: bodySample.path,
-        transientPath: transientSample.path,
-        texturePath: textureSample?.path,
-        settings,
-      });
-
-      setLastGenerated(result.outputPath);
-      setGenerationCount(prev => prev + 1);
-      onSoundGenerated?.(result.outputPath, selectedCategory);
       onGenerated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
     } finally {
       setGenerating(false);
+      setGeneratingProgress({ current: 0, total: 0 });
     }
   };
 
@@ -233,6 +246,23 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         ))}
       </div>
 
+      {/* Batch Size Selector */}
+      <div className="flex items-center gap-3">
+        <span className="text-drum-muted">Generate</span>
+        <select
+          value={batchSize}
+          onChange={(e) => setBatchSize(Number(e.target.value))}
+          className="bg-drum-elevated text-drum-text px-4 py-2 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none text-lg font-semibold"
+        >
+          {BATCH_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+        <span className="text-drum-muted">sample{batchSize !== 1 ? 's' : ''} at once</span>
+      </div>
+
       {/* Big Generate Button */}
       <div className="relative">
         {/* Glow effect */}
@@ -257,12 +287,18 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           {generating ? (
             <>
               <span className="text-5xl animate-spin">⚡</span>
-              <span className="text-lg">Creating...</span>
+              <span className="text-lg">
+                {generatingProgress.total > 1 
+                  ? `${generatingProgress.current}/${generatingProgress.total}`
+                  : 'Creating...'
+                }
+              </span>
             </>
           ) : (
             <>
               <span className="text-5xl">⚡</span>
               <span>GENERATE</span>
+              {batchSize > 1 && <span className="text-sm font-normal">×{batchSize}</span>}
             </>
           )}
         </button>
@@ -289,10 +325,11 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           <div className="flex flex-col items-center gap-4">
             <div className="text-center">
               <div className="text-lg text-orange-400 font-semibold flex items-center justify-center gap-2">
-                ✓ Sound Ready!
+                ✓ {batchSize > 1 ? `${batchSize} Sounds` : 'Sound'} Ready!
               </div>
               <div className="font-mono text-sm text-drum-text mt-1">
                 {lastGenerated.split('/').pop()}
+                {batchSize > 1 && <span className="text-drum-muted"> (latest)</span>}
               </div>
             </div>
             <div className="flex gap-3">
@@ -314,6 +351,11 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
                 ⬇ Download
               </a>
             </div>
+            {batchSize > 1 && (
+              <p className="text-sm text-drum-muted">
+                View all generated sounds in the <strong>Generated</strong> tab
+              </p>
+            )}
           </div>
         </div>
       )}

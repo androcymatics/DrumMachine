@@ -37,6 +37,7 @@ export interface GenerateLayerRequest {
   settings: GenerateLayerSettings;
   outputDir?: string;
   fileName?: string;
+  category?: string;
 }
 
 export interface GenerateLayerResponse {

@@ -74,12 +74,13 @@ export function getAudioDownloadUrl(path: string): string {
 
 // Generator API
 export async function generateLayer(params: {
-  bodyPath: string;
-  transientPath: string;
+  bodyPath?: string;
+  transientPath?: string;
   texturePath?: string;
   settings: GenerateLayerSettings;
-  outputDir: string;
-  fileName: string;
+  outputDir?: string;
+  fileName?: string;
+  category?: string;
 }): Promise<{ outputPath: string }> {
   return fetchAPI('/generate/layer', {
     method: 'POST',
