@@ -14,9 +14,9 @@ function getAudioContext(): AudioContext {
 }
 
 // Create a saturation curve for WaveShaperNode
-function createSaturationCurve(amount: number): Float32Array<ArrayBuffer> {
+function createSaturationCurve(amount: number) {
   const samples = 44100;
-  const curve = new Float32Array(samples) as Float32Array<ArrayBuffer>;
+  const curve = new Float32Array(samples);
   const deg = Math.PI / 180;
   const k = amount * 100;
   
@@ -24,20 +24,20 @@ function createSaturationCurve(amount: number): Float32Array<ArrayBuffer> {
     const x = (i * 2) / samples - 1;
     curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
   }
-  return curve;
+  return curve as unknown as Float32Array;
 }
 
 // Create a soft clipping curve (tanh-based)
-function createSoftClipCurve(): Float32Array<ArrayBuffer> {
+function createSoftClipCurve() {
   const samples = 44100;
-  const curve = new Float32Array(samples) as Float32Array<ArrayBuffer>;
+  const curve = new Float32Array(samples);
   
   for (let i = 0; i < samples; i++) {
     const x = (i * 2) / samples - 1;
     // Soft clip using tanh - provides smooth limiting
     curve[i] = Math.tanh(x * 1.5) * 0.95;
   }
-  return curve;
+  return curve as unknown as Float32Array;
 }
 
 interface GeneratorProps {
