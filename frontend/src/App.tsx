@@ -10,7 +10,7 @@ import type { Sample } from './types';
 type Tab = 'library' | 'generated' | 'easy' | 'generator' | 'output';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('library');
+  const [activeTab, setActiveTab] = useState<Tab>('easy');
   const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
   const [outputDir, setOutputDir] = useState<string>('');
   
