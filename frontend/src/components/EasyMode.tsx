@@ -126,6 +126,13 @@ const CATEGORY_ICONS: Record<SampleCategory, string> = {
 };
 
 const BATCH_SIZES = [1, 2, 3, 5, 10];
+const MAX_RECENTS = 20;
+
+interface RecentSound {
+  path: string;
+  name: string;
+  category: string;
+}
 
 export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [selectedCategory, setSelectedCategory] = useState<SampleCategory>('kick');
@@ -136,7 +143,40 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [generationCount, setGenerationCount] = useState(0);
   const [batchSize, setBatchSize] = useState(1);
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
+  const [recentSounds, setRecentSounds] = useState<RecentSound[]>([]);
+  const [playingRecentIndex, setPlayingRecentIndex] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const addToRecents = (path: string, category: string) => {
+    const name = path.split('/').pop() || 'Unknown';
+    setRecentSounds(prev => {
+      const newRecent = { path, name, category };
+      const updated = [newRecent, ...prev.filter(s => s.path !== path)];
+      return updated.slice(0, MAX_RECENTS);
+    });
+  };
+
+  const handlePlayRecent = (index: number) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    if (playingRecentIndex === index) {
+      setPlayingRecentIndex(null);
+      setPlayingGenerated(false);
+      return;
+    }
+
+    const sound = recentSounds[index];
+    const audio = new Audio(getAudioPreviewUrl(sound.path));
+    audio.onended = () => {
+      setPlayingRecentIndex(null);
+    };
+    audio.play();
+    audioRef.current = audio;
+    setPlayingRecentIndex(index);
+    setPlayingGenerated(false);
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -189,6 +229,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
         setLastGenerated(result.outputPath);
         setGenerationCount(prev => prev + 1);
+        addToRecents(result.outputPath, selectedCategory);
         onSoundGenerated?.(result.outputPath, selectedCategory);
       }
       
@@ -210,6 +251,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
     if (playingGenerated) {
       setPlayingGenerated(false);
+      setPlayingRecentIndex(null);
       return;
     }
 
@@ -356,6 +398,65 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
                 View all generated sounds in the <strong>Generated</strong> tab
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Recents Box */}
+      {recentSounds.length > 0 && (
+        <div className="w-full max-w-2xl">
+          <div className="card bg-drum-elevated/50">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-drum-text flex items-center gap-2">
+                🕐 Recent Generations
+                <span className="text-sm font-normal text-drum-muted">({recentSounds.length})</span>
+              </h3>
+              <button
+                onClick={() => setRecentSounds([])}
+                className="text-sm text-drum-muted hover:text-red-400 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {recentSounds.map((sound, index) => (
+                <div
+                  key={sound.path}
+                  className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                    playingRecentIndex === index 
+                      ? 'bg-orange-500/20 ring-1 ring-orange-500/50' 
+                      : 'hover:bg-drum-surface'
+                  }`}
+                >
+                  <button
+                    onClick={() => handlePlayRecent(index)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
+                      playingRecentIndex === index
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-drum-surface hover:bg-drum-accent/20'
+                    }`}
+                  >
+                    {playingRecentIndex === index ? '⏹' : '▶'}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-drum-text truncate text-sm">
+                      {sound.name}
+                    </div>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded bg-drum-surface text-drum-muted uppercase flex-shrink-0">
+                    {sound.category}
+                  </span>
+                  <a
+                    href={getAudioDownloadUrl(sound.path)}
+                    className="text-drum-muted hover:text-orange-400 transition-colors flex-shrink-0"
+                    download
+                    title="Download"
+                  >
+                    ⬇
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
