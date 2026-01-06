@@ -10,7 +10,7 @@ const execAsync = promisify(exec);
 // Allow persistent data dir override (e.g., Render disk at /data)
 const DATA_DIR = process.env.DATA_DIR || process.cwd();
 const LIBRARY_FILE = path.join(DATA_DIR, 'library.json');
-const SUPPORTED_EXTENSIONS = ['.wav', '.aiff', '.aif'];
+const SUPPORTED_EXTENSIONS = ['.wav', '.aiff', '.aif', '.m4a', '.mp3'];
 
 // Category keywords for auto-detection
 const CATEGORY_KEYWORDS: Record<SampleCategory, string[]> = {
