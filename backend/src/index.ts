@@ -333,9 +333,31 @@ fastify.get<{
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
+// Auto-load default samples on startup
+async function loadDefaultSamples() {
+  const library = await loadLibrary();
+  if (library.samples.length === 0) {
+    // Check if we have bundled samples
+    const defaultSamplesPath = path.join(process.cwd(), 'samples');
+    try {
+      await fs.access(defaultSamplesPath);
+      console.log('📦 Loading default sample library...');
+      const result = await addFolder(defaultSamplesPath);
+      console.log(`✅ Loaded ${result.added} default samples`);
+    } catch {
+      console.log('ℹ️ No default samples folder found');
+    }
+  } else {
+    console.log(`📚 Library already has ${library.samples.length} samples`);
+  }
+}
+
 try {
   await fastify.listen({ port: PORT, host: '0.0.0.0' });
   console.log(`\n🥁 Drum One-Shot Generator Backend running at http://localhost:${PORT}\n`);
+  
+  // Load default samples after server starts
+  await loadDefaultSamples();
 } catch (err) {
   fastify.log.error(err);
   process.exit(1);
