@@ -263,9 +263,9 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   return (
-    <div className="flex gap-6">
+    <div className="flex">
       {/* Left Side - Recents */}
-      <div className="w-80 flex-shrink-0">
+      <div className="w-72 flex-shrink-0 pr-6">
         <div className="card bg-drum-elevated/50 sticky top-24">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-drum-text flex items-center gap-2">
@@ -329,8 +329,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         </div>
       </div>
 
-      {/* Right Side - Main Content */}
-      <div className="flex-1 flex flex-col items-center gap-8">
+      {/* Right Side - Main Content (Centered) */}
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-8">
         {/* Title */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-drum-text mb-2">Easy Mode</h2>
