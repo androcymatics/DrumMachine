@@ -21,10 +21,15 @@ const fastify = Fastify({
   logger: true
 });
 
-// Enable CORS for localhost development
+// Enable CORS for all origins (needed for deployed frontend)
 await fastify.register(cors, {
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'],
+  origin: true,
   methods: ['GET', 'POST', 'DELETE', 'OPTIONS']
+});
+
+// Root route (for health checks)
+fastify.get('/', async () => {
+  return { status: 'ok', service: 'Drum Machine API' };
 });
 
 // Health check
