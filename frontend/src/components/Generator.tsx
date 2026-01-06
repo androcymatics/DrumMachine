@@ -785,8 +785,8 @@ export function Generator({
     try {
       // Determine category from body sample (or transient if body is muted)
       const primarySample = mutedSlots.has('body') ? transientSample : bodySample;
-      const category = primarySample.category.toUpperCase();
-      const prefix = `ANDRO_${category}`;
+      const categoryLabel = primarySample.category.charAt(0).toUpperCase() + primarySample.category.slice(1);
+      const prefix = `Cymatics - ${categoryLabel}`;
       
       let fileName: string | undefined;
       
@@ -795,8 +795,8 @@ export function Generator({
         const nextNum = await getNextOutputNumber(outputDir, prefix);
         const numStr = String(nextNum).padStart(3, '0');
         fileName = descriptor.trim()
-          ? `${prefix}_${descriptor.trim().replace(/\s+/g, '-')}_${numStr}.wav`
-          : `${prefix}_${numStr}.wav`;
+          ? `Cymatics - ${categoryLabel} (${descriptor.trim()}) - ${numStr}.wav`
+          : `Cymatics - ${categoryLabel} - ${numStr}.wav`;
       }
 
       const result = await generateLayer({
@@ -1288,8 +1288,8 @@ export function Generator({
               <div className="text-sm text-drum-muted">
                 Output name preview:{' '}
                 <span className="font-mono text-drum-text">
-                  ANDRO_{bodySample?.category.toUpperCase() || 'CATEGORY'}
-                  {descriptor && `_${descriptor.replace(/\s+/g, '-')}`}_001.wav
+                  Cymatics - {bodySample?.category ? bodySample.category.charAt(0).toUpperCase() + bodySample.category.slice(1) : 'Category'}
+                  {descriptor && ` (${descriptor.replace(/\s+/g, '-')})`} - 001.wav
                 </span>
               </div>
             )}

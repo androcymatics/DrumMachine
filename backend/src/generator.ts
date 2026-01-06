@@ -55,11 +55,11 @@ export async function generateLayeredSample(
   let finalFileName = fileName;
   if (!finalFileName || finalFileName.trim() === '') {
     tempFileCounter++;
-    const timestamp = Date.now();
     const categoryLabel = request.category 
       ? request.category.charAt(0).toUpperCase() + request.category.slice(1)
       : 'Generated';
-    finalFileName = `ANDRO_${categoryLabel}_${timestamp}_${tempFileCounter}.wav`;
+    const counterStr = String(tempFileCounter).padStart(3, '0');
+    finalFileName = `Cymatics - ${categoryLabel} - ${counterStr}.wav`;
   }
 
   // Ensure output directory exists
