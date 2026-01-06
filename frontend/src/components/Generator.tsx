@@ -339,7 +339,7 @@ export function Generator({
       nodes.masterGain.gain.value = 0.8;
       
       nodes.saturation = ctx.createWaveShaper();
-      nodes.saturation.curve = createSaturationCurve(settings.saturation);
+      (nodes.saturation as any).curve = createSaturationCurve(settings.saturation);
       nodes.saturation.oversample = '2x';
       
       // Body source with pitch shift (using playbackRate)
@@ -431,7 +431,7 @@ export function Generator({
       nodes.clipperInGain.gain.value = Math.pow(10, settings.clipperInGainDb / 20);
       
       nodes.clipperShaper = ctx.createWaveShaper();
-      nodes.clipperShaper.curve = createSoftClipCurve();
+      (nodes.clipperShaper as any).curve = createSoftClipCurve();
       nodes.clipperShaper.oversample = '2x';
       
       nodes.clipperOutGain = ctx.createGain();
@@ -611,7 +611,7 @@ export function Generator({
       nodes.textureGain.gain.value = mutedSlots.has('texture') ? 0 : 0.7;
     }
     if (nodes.saturation && isPreviewing) {
-      nodes.saturation.curve = createSaturationCurve(settings.saturation);
+      (nodes.saturation as any).curve = createSaturationCurve(settings.saturation);
     }
     if (nodes.reverbDry && nodes.reverbWet && isPreviewing) {
       nodes.reverbDry.gain.value = 1 - (settings.reverbMix * 0.3);
