@@ -272,7 +272,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   return (
-    <div className="galaxy-bg min-h-[80vh] -mx-6 -mt-6 px-6 pt-6 rounded-xl">
+    <div className="galaxy-bg fixed inset-0 top-[140px] overflow-auto">
       {/* Stars layer */}
       <div className="stars">
         <div className="shooting-star"></div>
@@ -281,7 +281,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 py-8">
+      <div className="relative z-10 flex flex-col items-center gap-8 py-12 px-4 min-h-full">
         {/* Title */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Easy Mode</h2>
