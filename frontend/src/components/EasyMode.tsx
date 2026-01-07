@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { generateLayer, searchSamples, getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
 import type { SampleCategory, GenerateLayerSettings } from '../types';
-import { CATEGORIES } from '../types';
 
 interface EasyModeProps {
   onGenerated?: () => void;
@@ -114,7 +113,7 @@ const SOUND_PRESETS: Record<SampleCategory, GenerateLayerSettings> = {
   },
 };
 
-const CATEGORY_ICONS: Record<SampleCategory, string> = {
+const CATEGORY_ICONS: Record<SampleCategory | 'all', string> = {
   kick: '🥁',
   snare: '🪘',
   hat: '🎩',
@@ -123,7 +122,14 @@ const CATEGORY_ICONS: Record<SampleCategory, string> = {
   '808': '🔊',
   donk: '💥',
   other: '🎵',
+  all: '🌟',
 };
+
+// Categories to show in the selector (excluding 'other', adding 'all')
+const DISPLAY_CATEGORIES: (SampleCategory | 'all')[] = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk', 'all'];
+
+// Categories to pick from when 'all' is selected
+const ALL_CATEGORIES: SampleCategory[] = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk'];
 
 const BATCH_SIZES = [1, 2, 3, 5, 10];
 const MAX_RECENTS = 20;
@@ -135,7 +141,7 @@ interface RecentSound {
 }
 
 export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
-  const [selectedCategory, setSelectedCategory] = useState<SampleCategory>('kick');
+  const [selectedCategory, setSelectedCategory] = useState<SampleCategory | 'all'>('kick');
   const [generating, setGenerating] = useState(false);
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -193,17 +199,22 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     setGeneratingProgress({ current: 0, total: batchSize });
 
     try {
-      // Fetch samples from the selected category
-      const samples = await searchSamples(undefined, selectedCategory);
-
-      if (samples.length < 2) {
-        setError(`Need at least 2 samples in ${selectedCategory} category. Add more samples in the Library tab!`);
-        return;
-      }
-
       // Generate multiple samples based on batch size
       for (let i = 0; i < batchSize; i++) {
         setGeneratingProgress({ current: i + 1, total: batchSize });
+
+        // Pick a category - random if 'all' is selected
+        const actualCategory: SampleCategory = selectedCategory === 'all'
+          ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)]
+          : selectedCategory;
+
+        // Fetch samples from the category
+        const samples = await searchSamples(undefined, actualCategory);
+
+        if (samples.length < 2) {
+          setError(`Need at least 2 samples in ${actualCategory} category. Add more samples in the Library tab!`);
+          return;
+        }
 
         // Shuffle and pick random samples for each generation
         const shuffled = [...samples].sort(() => Math.random() - 0.5);
@@ -212,8 +223,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
 
         // Get preset settings with slight randomization
-        const baseSettings = SOUND_PRESETS[selectedCategory];
-        const noPitch = NO_PITCH_CATEGORIES.includes(selectedCategory);
+        const baseSettings = SOUND_PRESETS[actualCategory];
+        const noPitch = NO_PITCH_CATEGORIES.includes(actualCategory);
         
         const settings: GenerateLayerSettings = {
           ...baseSettings,
@@ -233,13 +244,13 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           transientPath: transientSample.path,
           texturePath: textureSample?.path,
           settings,
-          category: selectedCategory,
+          category: actualCategory,
         });
 
         setLastGenerated(result.outputPath);
         setGenerationCount(prev => prev + 1);
-        addToRecents(result.outputPath, selectedCategory);
-        onSoundGenerated?.(result.outputPath, selectedCategory);
+        addToRecents(result.outputPath, actualCategory);
+        onSoundGenerated?.(result.outputPath, actualCategory);
       }
       
       onGenerated?.();
@@ -290,18 +301,20 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
         {/* Category Selector */}
         <div className="flex flex-wrap justify-center gap-3 max-w-xl">
-        {CATEGORIES.map((cat) => (
+        {DISPLAY_CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
             className={`px-6 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               selectedCategory === cat
-                ? 'bg-drum-accent text-white scale-105 shadow-lg shadow-drum-accent/30'
+                ? cat === 'all' 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-105 shadow-lg shadow-purple-500/30'
+                  : 'bg-drum-accent text-white scale-105 shadow-lg shadow-drum-accent/30'
                 : 'bg-drum-elevated text-drum-muted hover:bg-drum-surface hover:text-drum-text'
             }`}
           >
             <span className="text-2xl">{CATEGORY_ICONS[cat]}</span>
-            <span className="capitalize">{cat}</span>
+            <span className="capitalize">{cat === 'all' ? 'All Types' : cat}</span>
           </button>
         ))}
       </div>
