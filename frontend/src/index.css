@@ -182,3 +182,68 @@ input[type="range"]::-moz-range-thumb:active {
 .badge-donk { @apply bg-pink-500/20 text-pink-400 border-pink-500/30; }
 .badge-other { @apply bg-gray-500/20 text-gray-400 border-gray-500/30; }
 
+/* Generate button animations */
+@keyframes generate-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 15px rgba(255, 107, 53, 0);
+  }
+}
+
+@keyframes generate-burst {
+  0% {
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ring-expand {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes glow-burst {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(1.5);
+  }
+}
+
+.generate-btn-idle {
+  animation: generate-pulse 2s ease-in-out infinite;
+}
+
+.generate-btn-clicked {
+  animation: generate-burst 0.4s ease-out;
+}
+
+.generate-ring {
+  animation: ring-expand 0.6s ease-out forwards;
+}
+
+.generate-glow-burst {
+  animation: glow-burst 0.5s ease-out forwards;
+}
+

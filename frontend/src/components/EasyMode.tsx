@@ -145,6 +145,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
   const [recentSounds, setRecentSounds] = useState<RecentSound[]>([]);
   const [playingRecentIndex, setPlayingRecentIndex] = useState<number | null>(null);
+  const [clickRings, setClickRings] = useState<number[]>([]);
+  const [isClicked, setIsClicked] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const addToRecents = (path: string, category: string) => {
@@ -179,6 +181,13 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   const handleGenerate = async () => {
+    // Trigger click animation
+    setIsClicked(true);
+    const ringId = Date.now();
+    setClickRings(prev => [...prev, ringId]);
+    setTimeout(() => setIsClicked(false), 400);
+    setTimeout(() => setClickRings(prev => prev.filter(id => id !== ringId)), 600);
+    
     setGenerating(true);
     setError(null);
     setGeneratingProgress({ current: 0, total: batchSize });
@@ -307,10 +316,18 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
       {/* Big Generate Button */}
       <div className="relative">
+        {/* Expanding rings on click */}
+        {clickRings.map(ringId => (
+          <div
+            key={ringId}
+            className="absolute inset-0 rounded-full border-4 border-orange-400 generate-ring pointer-events-none"
+          />
+        ))}
+        
         {/* Glow effect */}
         <div 
           className={`absolute inset-0 rounded-full bg-orange-500 blur-xl transition-opacity duration-300 ${
-            generating ? 'opacity-50 animate-pulse' : 'opacity-30'
+            generating ? 'opacity-50 animate-pulse' : isClicked ? 'opacity-70 generate-glow-burst' : 'opacity-30'
           }`} 
         />
         
@@ -323,7 +340,9 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             flex flex-col items-center justify-center gap-2
             ${generating 
               ? 'scale-95 opacity-80' 
-              : 'hover:scale-105 hover:shadow-orange-500/50 active:scale-95'
+              : isClicked
+                ? 'generate-btn-clicked'
+                : 'generate-btn-idle hover:scale-105 hover:shadow-orange-500/50'
             }`}
         >
           {generating ? (
@@ -338,7 +357,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             </>
           ) : (
             <>
-              <span className="text-5xl">⚡</span>
+              <span className={`text-5xl ${isClicked ? 'animate-bounce' : ''}`}>⚡</span>
               <span>GENERATE</span>
               {batchSize > 1 && <span className="text-sm font-normal">×{batchSize}</span>}
             </>
