@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { generateLayer, searchSamples, getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
 import type { SampleCategory, GenerateLayerSettings } from '../types';
 
@@ -164,7 +164,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     });
   };
 
-  const handlePlayRecent = (index: number) => {
+  const handlePlayRecent = useCallback((index: number) => {
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -176,6 +176,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     }
 
     const sound = recentSounds[index];
+    if (!sound) return;
+    
     const audio = new Audio(getAudioPreviewUrl(sound.path));
     audio.onended = () => {
       setPlayingRecentIndex(null);
@@ -184,7 +186,33 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     audioRef.current = audio;
     setPlayingRecentIndex(index);
     setPlayingGenerated(false);
-  };
+  }, [recentSounds, playingRecentIndex]);
+
+  // Keyboard navigation for recents (up/down arrows)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if we have recent sounds
+      if (recentSounds.length === 0) return;
+      
+      // Don't handle if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const nextIndex = playingRecentIndex === null ? 0 : Math.min(playingRecentIndex + 1, recentSounds.length - 1);
+        handlePlayRecent(nextIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prevIndex = playingRecentIndex === null ? recentSounds.length - 1 : Math.max(playingRecentIndex - 1, 0);
+        handlePlayRecent(prevIndex);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [recentSounds, playingRecentIndex, handlePlayRecent]);
 
   const handleGenerate = async () => {
     // Trigger click animation
