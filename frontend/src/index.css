@@ -247,6 +247,38 @@ input[type="range"]::-moz-range-thumb:active {
   animation: glow-burst 0.5s ease-out forwards;
 }
 
+/* Spinning ring while generating */
+.generating-ring {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(251, 146, 60, 0.9) 60deg,
+    rgba(249, 115, 22, 1) 120deg,
+    rgba(234, 88, 12, 0.9) 180deg,
+    transparent 240deg,
+    transparent 360deg
+  );
+  animation: spin-ring 1s linear infinite;
+  border-radius: 50%;
+}
+
+.generating-ring::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background: #0f0a1a;
+  border-radius: 50%;
+}
+
+@keyframes spin-ring {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Galaxy background */
 .galaxy-bg {
   position: relative;

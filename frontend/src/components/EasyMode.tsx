@@ -425,6 +425,11 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
       {/* Big Generate Button */}
       <div className="relative">
+        {/* Spinning ring while generating */}
+        {generating && (
+          <div className="absolute -inset-3 rounded-full generating-ring pointer-events-none" />
+        )}
+        
         {/* Expanding rings on click */}
         {clickRings.map(ringId => (
           <div
