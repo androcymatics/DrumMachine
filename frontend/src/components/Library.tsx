@@ -264,7 +264,7 @@ export function Library({ onSelectForGenerator, selectedBody, selectedTransient,
                 <th className="text-left px-4 py-3 text-sm font-medium text-drum-muted w-24">Category</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-drum-muted w-20">Duration</th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-drum-muted w-20">Peak dB</th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-drum-muted w-48">Add to Generator</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-drum-muted w-48">Add to Advanced</th>
               </tr>
             </thead>
             <tbody>

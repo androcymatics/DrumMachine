@@ -142,7 +142,7 @@ export function Output({ outputDir, setOutputDir }: OutputProps) {
             <div className="px-4 py-12 text-center">
               <div className="text-4xl mb-4">🎵</div>
               <p className="text-drum-muted">
-                No generated files yet. Head to the Generator tab to create some!
+                No generated files yet. Head to the Advanced tab to create some!
               </p>
             </div>
           ) : (

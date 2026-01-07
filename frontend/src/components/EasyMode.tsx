@@ -284,7 +284,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       <div className="relative z-10 flex flex-col items-center gap-8 pt-32 pb-12 px-4 min-h-full">
         {/* Title */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Easy Mode</h2>
+          <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Drum Factory</h2>
           <p className="text-gray-300">Pick a sound type and smash that button!</p>
         </div>
 
@@ -432,7 +432,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
       {/* Tip */}
       <p className="text-drum-muted text-sm text-center max-w-md">
-        💡 For more control over samples and effects, use the <strong>Generator</strong> tab
+        💡 For more control over samples and effects, use the <strong>Advanced</strong> tab
       </p>
 
       {/* Recents Section */}

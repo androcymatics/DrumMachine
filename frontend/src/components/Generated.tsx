@@ -47,7 +47,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
           <h2 className="text-2xl font-bold text-drum-text">Generated Sounds</h2>
           <p className="text-drum-muted">
             {sounds.length === 0 
-              ? 'No sounds generated yet. Try Easy Mode or Generator!'
+              ? 'No sounds generated yet. Try Drum Factory or Advanced!'
               : `${sounds.length} sound${sounds.length !== 1 ? 's' : ''} generated this session`
             }
           </p>
@@ -70,8 +70,8 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
             <span className="text-6xl mb-4">🎵</span>
             <h3 className="text-xl font-semibold text-drum-text mb-2">No sounds yet</h3>
             <p className="text-drum-muted max-w-md">
-              Generated sounds will appear here. Head to <strong>Easy Mode</strong> for quick generation 
-              or <strong>Generator</strong> for full control.
+              Generated sounds will appear here. Head to <strong>Drum Factory</strong> for quick generation 
+              or <strong>Advanced</strong> for full control.
             </p>
           </div>
         </div>
@@ -137,7 +137,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
       {sounds.length > 1 && (
         <div className="flex justify-center pt-4">
           <p className="text-sm text-drum-muted">
-            💡 Tip: Download individual sounds or use the Generator's output folder to save automatically
+            💡 Tip: Download individual sounds or use the Advanced tab's output folder to save automatically
           </p>
         </div>
       )}
