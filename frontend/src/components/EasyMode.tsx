@@ -96,8 +96,8 @@ const SOUND_PRESETS: Record<SampleCategory, GenerateLayerSettings> = {
     reverbMix: 0,
     clipperInGainDb: 6,
     clipperOutGainDb: -3,
-    trimDb: -60,
-    decayMs: 150,
+    trimDb: -80,
+    decayMs: 0,
     normalizePeakDb: -0.5,
   },
   other: {
