@@ -272,7 +272,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   return (
-    <div className="galaxy-bg fixed inset-0 top-[140px] overflow-auto">
+    <div className="galaxy-bg fixed left-0 right-0 bottom-0 top-[118px] overflow-auto">
       {/* Stars layer */}
       <div className="stars">
         <div className="shooting-star"></div>

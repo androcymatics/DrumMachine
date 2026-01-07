@@ -114,7 +114,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className={`${activeTab === 'easy-mode' ? '' : 'max-w-7xl mx-auto px-4 py-6'}`}>
         {!backendConnected && backendConnected !== null && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
             <p className="font-medium">⚠️ Backend not connected</p>
