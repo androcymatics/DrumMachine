@@ -152,7 +152,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
                   >
                     {/* Sound name */}
                     <div className="font-medium text-drum-text text-xs truncate mb-2" title={sound.name}>
-                      {sound.name.replace(/^Cymatics - \w+ - /, '')}
+                      {sound.name}
                     </div>
                     
                     {/* Actions */}
