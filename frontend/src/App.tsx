@@ -54,7 +54,6 @@ function App() {
     { id: 'generator', label: 'Advanced', icon: '⚡' },
     { id: 'generated', label: 'Generated', icon: '🎵', badge: generatedSounds.length || undefined },
     { id: 'library', label: 'Library', icon: '📚' },
-    { id: 'output', label: 'Output', icon: '📁' },
   ];
 
   const handleSelectForGenerator = (sample: Sample, slot: 'body' | 'transient' | 'texture') => {
