@@ -70,7 +70,7 @@ function App() {
   }, []);
 
   const tabs: { id: Tab; label: string; icon: string; badge?: number }[] = [
-    { id: 'easy', label: 'Drum Factory', icon: '🏭' },
+    { id: 'easy', label: 'Drum Machine', icon: '🥁' },
     { id: 'generator', label: 'Advanced', icon: '⚡' },
     { id: 'generated', label: 'Generated', icon: '🎵', badge: generatedSounds.length || undefined },
     { id: 'library', label: 'Library', icon: '📚' },
