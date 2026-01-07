@@ -247,3 +247,169 @@ input[type="range"]::-moz-range-thumb:active {
   animation: glow-burst 0.5s ease-out forwards;
 }
 
+/* Galaxy background */
+.galaxy-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.galaxy-bg::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(88, 28, 135, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(15, 23, 42, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 20%, rgba(124, 58, 237, 0.2) 0%, transparent 40%),
+    radial-gradient(ellipse at 30% 80%, rgba(219, 39, 119, 0.15) 0%, transparent 40%);
+  animation: galaxy-rotate 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.galaxy-bg::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(ellipse at 70% 40%, rgba(139, 92, 246, 0.25) 0%, transparent 45%),
+    radial-gradient(ellipse at 40% 60%, rgba(236, 72, 153, 0.15) 0%, transparent 50%);
+  animation: galaxy-rotate 90s linear infinite reverse;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes galaxy-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Stars layer */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stars::before,
+.stars::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.stars::before {
+  background-image: 
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 20% 50%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 30% 10%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 50% 30%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 90% 40%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 35% 95%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 45% 5%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 55% 55%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 65% 25%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 75% 85%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 95% 65%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 5% 90%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 12% 42%, rgba(255,255,255,0.6), transparent);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.stars::after {
+  background-image: 
+    radial-gradient(1px 1px at 8% 65%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 18% 25%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 28% 85%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 38% 45%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 48% 75%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 58% 15%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 68% 55%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 78% 35%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 88% 95%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 98% 8%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 3% 52%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 22% 72%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 42% 22%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 62% 92%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 82% 12%, rgba(255,255,255,0.8), transparent);
+  animation: twinkle 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Shooting stars */
+.shooting-star {
+  position: absolute;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
+  animation: shoot 3s ease-in-out infinite;
+  opacity: 0;
+  z-index: 1;
+}
+
+.shooting-star:nth-child(1) {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.shooting-star:nth-child(2) {
+  top: 40%;
+  left: 60%;
+  animation-delay: 2s;
+}
+
+.shooting-star:nth-child(3) {
+  top: 70%;
+  left: 30%;
+  animation-delay: 4s;
+}
+
+@keyframes shoot {
+  0% {
+    transform: translateX(0) translateY(0) rotate(-45deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  20% {
+    transform: translateX(300px) translateY(300px) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+

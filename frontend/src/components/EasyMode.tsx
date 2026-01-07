@@ -272,12 +272,21 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-8">
-      {/* Title */}
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-drum-text mb-2">Easy Mode</h2>
-        <p className="text-drum-muted">Pick a sound type and smash that button!</p>
+    <div className="galaxy-bg min-h-[80vh] -mx-6 -mt-6 px-6 pt-6 rounded-xl">
+      {/* Stars layer */}
+      <div className="stars">
+        <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
+        <div className="shooting-star"></div>
       </div>
+      
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 py-8">
+        {/* Title */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Easy Mode</h2>
+          <p className="text-gray-300">Pick a sound type and smash that button!</p>
+        </div>
 
         {/* Category Selector */}
         <div className="flex flex-wrap justify-center gap-3 max-w-xl">
@@ -481,6 +490,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
