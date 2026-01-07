@@ -45,69 +45,10 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  // Track selection by category and index within that category
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedIndexInCategory, setSelectedIndexInCategory] = useState<number>(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Create a flat list of all sounds for keyboard navigation
-  const flatSoundsList = useMemo(() => {
-    return [...sounds].reverse(); // Most recent first
-  }, [sounds]);
-
-  // Play a specific sound by index
-  const playSoundAtIndex = useCallback((index: number) => {
-    if (index < 0 || index >= flatSoundsList.length) return;
-    
-    const sound = flatSoundsList[index];
-    
-    // Stop current audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    
-    // Play new sound
-    const audio = new Audio(getAudioPreviewUrl(sound.path));
-    audio.onended = () => setPlayingId(null);
-    audio.play();
-    audioRef.current = audio;
-    setPlayingId(sound.id);
-  }, [flatSoundsList]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle if not in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-      
-      if (sounds.length === 0) return;
-      
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex(prev => {
-          const newIndex = prev < flatSoundsList.length - 1 ? prev + 1 : 0;
-          setTimeout(() => playSoundAtIndex(newIndex), 0);
-          return newIndex;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex(prev => {
-          const newIndex = prev > 0 ? prev - 1 : flatSoundsList.length - 1;
-          setTimeout(() => playSoundAtIndex(newIndex), 0);
-          return newIndex;
-        });
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [sounds.length, flatSoundsList, playSoundAtIndex]);
-
-  // Reset selection when sounds change
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [sounds.length]);
 
   // Group sounds by category
   const soundsByCategory = useMemo(() => {
@@ -135,7 +76,38 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
     return [...CATEGORY_ORDER, 'other'].filter(cat => soundsByCategory[cat].length > 0);
   }, [soundsByCategory]);
 
+  // Play a sound and track its position
+  const playSoundInCategory = useCallback((category: string, index: number) => {
+    const categorySounds = soundsByCategory[category];
+    if (!categorySounds || index < 0 || index >= categorySounds.length) return;
+    
+    const sound = categorySounds[index];
+    
+    // Stop current audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    // Play new sound
+    const audio = new Audio(getAudioPreviewUrl(sound.path));
+    audio.onended = () => setPlayingId(null);
+    audio.play();
+    audioRef.current = audio;
+    setPlayingId(sound.id);
+    
+    // Update selection
+    setSelectedCategory(category);
+    setSelectedIndexInCategory(index);
+  }, [soundsByCategory]);
+
   const handlePlay = (sound: GeneratedSound) => {
+    // Find the category and index for this sound
+    const category = CATEGORY_ORDER.includes(sound.category as SampleCategory) 
+      ? sound.category 
+      : 'other';
+    const index = soundsByCategory[category].findIndex(s => s.id === sound.id);
+    
     if (audioRef.current) {
       audioRef.current.pause();
     }
@@ -150,7 +122,82 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
     audio.play();
     audioRef.current = audio;
     setPlayingId(sound.id);
+    
+    // Track the selection for keyboard navigation
+    setSelectedCategory(category);
+    setSelectedIndexInCategory(index);
   };
+
+  // Keyboard navigation - up/down within current category column
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (sounds.length === 0) return;
+      
+      // If no category selected yet, select the first category with sounds
+      if (!selectedCategory || !soundsByCategory[selectedCategory]?.length) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const firstCategory = activeCategories[0];
+          if (firstCategory && soundsByCategory[firstCategory].length > 0) {
+            playSoundInCategory(firstCategory, 0);
+          }
+        }
+        return;
+      }
+      
+      const categorySounds = soundsByCategory[selectedCategory];
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const newIndex = selectedIndexInCategory < categorySounds.length - 1 
+          ? selectedIndexInCategory + 1 
+          : 0; // Wrap to top
+        playSoundInCategory(selectedCategory, newIndex);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const newIndex = selectedIndexInCategory > 0 
+          ? selectedIndexInCategory - 1 
+          : categorySounds.length - 1; // Wrap to bottom
+        playSoundInCategory(selectedCategory, newIndex);
+      } else if (e.key === 'ArrowLeft') {
+        // Move to previous category column
+        e.preventDefault();
+        const currentCatIndex = activeCategories.indexOf(selectedCategory);
+        const prevCatIndex = currentCatIndex > 0 ? currentCatIndex - 1 : activeCategories.length - 1;
+        const prevCategory = activeCategories[prevCatIndex];
+        if (prevCategory) {
+          const newIndex = Math.min(selectedIndexInCategory, soundsByCategory[prevCategory].length - 1);
+          playSoundInCategory(prevCategory, Math.max(0, newIndex));
+        }
+      } else if (e.key === 'ArrowRight') {
+        // Move to next category column
+        e.preventDefault();
+        const currentCatIndex = activeCategories.indexOf(selectedCategory);
+        const nextCatIndex = currentCatIndex < activeCategories.length - 1 ? currentCatIndex + 1 : 0;
+        const nextCategory = activeCategories[nextCatIndex];
+        if (nextCategory) {
+          const newIndex = Math.min(selectedIndexInCategory, soundsByCategory[nextCategory].length - 1);
+          playSoundInCategory(nextCategory, Math.max(0, newIndex));
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sounds.length, selectedCategory, selectedIndexInCategory, soundsByCategory, activeCategories, playSoundInCategory]);
+
+  // Reset selection when sounds are cleared
+  useEffect(() => {
+    if (sounds.length === 0) {
+      setSelectedCategory(null);
+      setSelectedIndexInCategory(-1);
+    }
+  }, [sounds.length]);
 
   const handleDownloadAll = async () => {
     if (sounds.length === 0 || downloading) return;
@@ -266,9 +313,8 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
               
               {/* Sounds in this category */}
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {soundsByCategory[category].map((sound) => {
-                  const flatIndex = flatSoundsList.findIndex(s => s.id === sound.id);
-                  const isSelected = flatIndex === selectedIndex;
+                {soundsByCategory[category].map((sound, index) => {
+                  const isSelected = selectedCategory === category && selectedIndexInCategory === index;
                   return (
                   <div
                     key={sound.id}
@@ -319,7 +365,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
       {sounds.length > 0 && (
         <div className="flex justify-center pt-4">
           <p className="text-sm text-drum-muted">
-            💡 Tip: Use <strong>↑↓ arrow keys</strong> to preview sounds
+            💡 Tip: Use <strong>↑↓</strong> to navigate within a column, <strong>←→</strong> to switch columns
           </p>
         </div>
       )}
