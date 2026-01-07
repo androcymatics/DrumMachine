@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { generateLayer, getNextOutputNumber, getAudioPreviewUrl, getAudioDownloadUrl, searchSamples } from '../api';
 import type { Sample, GenerateLayerSettings, SampleCategory } from '../types';
 import { CATEGORY_COLORS, CATEGORIES } from '../types';
+import { playCompletionSound } from '../utils/sounds';
 
 // Web Audio context for real-time preview
 let audioContext: AudioContext | null = null;
@@ -811,6 +812,9 @@ export function Generator({
 
       setLastGenerated(result.outputPath);
       setDescriptor('');
+      
+      // Play completion sound
+      playCompletionSound();
       
       // Only switch to output tab if we saved to a custom folder
       if (outputDir.trim()) {

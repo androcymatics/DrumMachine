@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { generateLayer, searchSamples, getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
 import type { SampleCategory, GenerateLayerSettings } from '../types';
+import { playCompletionSound } from '../utils/sounds';
 
 interface EasyModeProps {
   onGenerated?: () => void;
@@ -325,6 +326,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         }
       }
       
+      // Play completion sound when all generations are done
+      playCompletionSound();
       onGenerated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Generation failed');
