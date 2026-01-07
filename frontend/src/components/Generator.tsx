@@ -806,6 +806,7 @@ export function Generator({
         settings,
         outputDir: outputDir.trim() || undefined,
         fileName,
+        category: primarySample.category,
       });
 
       setLastGenerated(result.outputPath);
