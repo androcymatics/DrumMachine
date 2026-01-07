@@ -1,4 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 import { getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
 import type { SampleCategory } from '../types';
 
@@ -41,6 +43,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export function Generated({ sounds, onClear }: GeneratedProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Group sounds by category
@@ -86,6 +90,51 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
     setPlayingId(sound.id);
   };
 
+  const handleDownloadAll = async () => {
+    if (sounds.length === 0 || downloading) return;
+    
+    setDownloading(true);
+    setDownloadProgress({ current: 0, total: sounds.length });
+    
+    try {
+      const zip = new JSZip();
+      
+      // Create folders for each category
+      const folders: Record<string, JSZip | null> = {};
+      
+      for (let i = 0; i < sounds.length; i++) {
+        const sound = sounds[i];
+        setDownloadProgress({ current: i + 1, total: sounds.length });
+        
+        // Fetch the audio file
+        const response = await fetch(getAudioDownloadUrl(sound.path));
+        const blob = await response.blob();
+        
+        // Get or create category folder
+        const category = sound.category.charAt(0).toUpperCase() + sound.category.slice(1);
+        if (!folders[category]) {
+          folders[category] = zip.folder(category);
+        }
+        
+        // Add file to the category folder
+        const fileName = sound.name.endsWith('.wav') ? sound.name : `${sound.name}.wav`;
+        folders[category]?.file(fileName, blob);
+      }
+      
+      // Generate and download the zip
+      const content = await zip.generateAsync({ type: 'blob' });
+      const timestamp = new Date().toISOString().slice(0, 10);
+      saveAs(content, `Cymatics-Drums-${timestamp}.zip`);
+      
+    } catch (error) {
+      console.error('Failed to download all:', error);
+      alert('Failed to download. Please try again.');
+    } finally {
+      setDownloading(false);
+      setDownloadProgress({ current: 0, total: 0 });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,12 +150,24 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
         </div>
         
         {sounds.length > 0 && (
-          <button
-            onClick={onClear}
-            className="btn btn-ghost text-red-400 hover:bg-red-500/10 hover:text-red-300"
-          >
-            🗑️ Clear All
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloading}
+              className="btn bg-drum-accent hover:bg-drum-accent-hover text-white"
+            >
+              {downloading 
+                ? `📦 ${downloadProgress.current}/${downloadProgress.total}...` 
+                : '📦 Download All'
+              }
+            </button>
+            <button
+              onClick={onClear}
+              className="btn btn-ghost text-red-400 hover:bg-red-500/10 hover:text-red-300"
+            >
+              🗑️ Clear All
+            </button>
+          </div>
         )}
       </div>
 
