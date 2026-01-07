@@ -263,79 +263,12 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   };
 
   return (
-    <div className="flex">
-      {/* Left Side - Recents */}
-      <div className="w-72 flex-shrink-0 pr-6">
-        <div className="card bg-drum-elevated/50 sticky top-24">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-drum-text flex items-center gap-2">
-              🕐 Recents
-              {recentSounds.length > 0 && (
-                <span className="text-sm font-normal text-drum-muted">({recentSounds.length})</span>
-              )}
-            </h3>
-            {recentSounds.length > 0 && (
-              <button
-                onClick={() => setRecentSounds([])}
-                className="text-sm text-drum-muted hover:text-red-400 transition-colors"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          {recentSounds.length === 0 ? (
-            <div className="text-center py-8 text-drum-muted">
-              <p className="text-4xl mb-2">🎵</p>
-              <p className="text-sm">Generated sounds will appear here</p>
-            </div>
-          ) : (
-            <div className="max-h-[60vh] overflow-y-auto space-y-1">
-              {recentSounds.map((sound, index) => (
-                <div
-                  key={sound.path}
-                  className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
-                    playingRecentIndex === index 
-                      ? 'bg-orange-500/20 ring-1 ring-orange-500/50' 
-                      : 'hover:bg-drum-surface'
-                  }`}
-                >
-                  <button
-                    onClick={() => handlePlayRecent(index)}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 text-sm ${
-                      playingRecentIndex === index
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-drum-surface hover:bg-drum-accent/20'
-                    }`}
-                  >
-                    {playingRecentIndex === index ? '⏹' : '▶'}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-drum-text truncate text-xs">
-                      {sound.name}
-                    </div>
-                  </div>
-                  <a
-                    href={getAudioDownloadUrl(sound.path)}
-                    className="text-drum-muted hover:text-orange-400 transition-colors flex-shrink-0 text-sm"
-                    download
-                    title="Download"
-                  >
-                    ⬇
-                  </a>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+    <div className="flex flex-col items-center gap-8">
+      {/* Title */}
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-drum-text mb-2">Easy Mode</h2>
+        <p className="text-drum-muted">Pick a sound type and smash that button!</p>
       </div>
-
-      {/* Right Side - Main Content (Centered) */}
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[70vh] gap-8">
-        {/* Title */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-drum-text mb-2">Easy Mode</h2>
-          <p className="text-drum-muted">Pick a sound type and smash that button!</p>
-        </div>
 
         {/* Category Selector */}
         <div className="flex flex-wrap justify-center gap-3 max-w-xl">
@@ -473,7 +406,62 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       <p className="text-drum-muted text-sm text-center max-w-md">
         💡 For more control over samples and effects, use the <strong>Generator</strong> tab
       </p>
-      </div>
+
+      {/* Recents Section */}
+      {recentSounds.length > 0 && (
+        <div className="w-full max-w-xl mt-4">
+          <div className="card bg-drum-elevated/50">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-drum-text flex items-center gap-2">
+                🕐 Recents
+                <span className="text-sm font-normal text-drum-muted">({recentSounds.length})</span>
+              </h3>
+              <button
+                onClick={() => setRecentSounds([])}
+                className="text-sm text-drum-muted hover:text-red-400 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="max-h-48 overflow-y-auto space-y-1">
+              {recentSounds.map((sound, index) => (
+                <div
+                  key={sound.path}
+                  className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                    playingRecentIndex === index 
+                      ? 'bg-orange-500/20 ring-1 ring-orange-500/50' 
+                      : 'hover:bg-drum-surface'
+                  }`}
+                >
+                  <button
+                    onClick={() => handlePlayRecent(index)}
+                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 text-sm ${
+                      playingRecentIndex === index
+                        ? 'bg-orange-500 text-white'
+                        : 'bg-drum-surface hover:bg-drum-accent/20'
+                    }`}
+                  >
+                    {playingRecentIndex === index ? '⏹' : '▶'}
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-drum-text truncate text-sm">
+                      {sound.name}
+                    </div>
+                  </div>
+                  <a
+                    href={getAudioDownloadUrl(sound.path)}
+                    className="text-drum-muted hover:text-orange-400 transition-colors flex-shrink-0 text-sm"
+                    download
+                    title="Download"
+                  >
+                    ⬇
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
