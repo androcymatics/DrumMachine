@@ -185,9 +185,10 @@ fastify.post<{
     settings: GenerateLayerSettings;
     outputDir?: string;
     fileName?: string;
+    category?: string;
   }
 }>('/generate/layer', async (request, reply) => {
-  const { bodyPath, transientPath, texturePath, settings, outputDir, fileName } = request.body;
+  const { bodyPath, transientPath, texturePath, settings, outputDir, fileName, category } = request.body;
   
   // Validate - need at least one of body or transient
   if (!bodyPath && !transientPath) {
@@ -219,7 +220,8 @@ fastify.post<{
       texturePath,
       settings: mergedSettings,
       outputDir,
-      fileName
+      fileName,
+      category
     });
     
     return { success: true, ...result };
