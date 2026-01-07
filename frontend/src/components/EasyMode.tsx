@@ -196,61 +196,68 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     
     setGenerating(true);
     setError(null);
-    setGeneratingProgress({ current: 0, total: batchSize });
+
+    // If "All Types" is selected, generate batchSize of EACH category
+    const categoriesToGenerate: SampleCategory[] = selectedCategory === 'all' 
+      ? ALL_CATEGORIES 
+      : [selectedCategory];
+    
+    const totalGenerations = categoriesToGenerate.length * batchSize;
+    setGeneratingProgress({ current: 0, total: totalGenerations });
 
     try {
-      // Generate multiple samples based on batch size
-      for (let i = 0; i < batchSize; i++) {
-        setGeneratingProgress({ current: i + 1, total: batchSize });
-
-        // Pick a category - random if 'all' is selected
-        const actualCategory: SampleCategory = selectedCategory === 'all'
-          ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)]
-          : selectedCategory;
-
+      let currentProgress = 0;
+      
+      for (const category of categoriesToGenerate) {
         // Fetch samples from the category
-        const samples = await searchSamples(undefined, actualCategory);
+        const samples = await searchSamples(undefined, category);
 
         if (samples.length < 2) {
-          setError(`Need at least 2 samples in ${actualCategory} category. Add more samples in the Library tab!`);
+          setError(`Need at least 2 samples in ${category} category. Add more samples in the Library tab!`);
           return;
         }
 
-        // Shuffle and pick random samples for each generation
-        const shuffled = [...samples].sort(() => Math.random() - 0.5);
-        const bodySample = shuffled[0];
-        const transientSample = shuffled[1];
-        const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
+        // Generate batchSize samples for this category
+        for (let i = 0; i < batchSize; i++) {
+          currentProgress++;
+          setGeneratingProgress({ current: currentProgress, total: totalGenerations });
 
-        // Get preset settings with slight randomization
-        const baseSettings = SOUND_PRESETS[actualCategory];
-        const noPitch = NO_PITCH_CATEGORIES.includes(actualCategory);
-        
-        const settings: GenerateLayerSettings = {
-          ...baseSettings,
-          // Add slight variations (but respect category restrictions)
-          bodySemitones: noPitch ? 0 : baseSettings.bodySemitones + Math.floor(Math.random() * 5) - 2,
-          transientGainDb: baseSettings.transientGainDb + Math.floor(Math.random() * 5) - 2,
-          // Cap saturation at 5% for all easy mode generations
-          saturation: Math.min(MAX_SATURATION, Math.max(0, baseSettings.saturation + (Math.random() * 0.03 - 0.015))),
-          // No reverb in easy mode
-          reverbMix: 0,
-          clipperInGainDb: baseSettings.clipperInGainDb + Math.floor(Math.random() * 4) - 2,
-        };
+          // Shuffle and pick random samples for each generation
+          const shuffled = [...samples].sort(() => Math.random() - 0.5);
+          const bodySample = shuffled[0];
+          const transientSample = shuffled[1];
+          const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
 
-        // Generate without output folder (for download)
-        const result = await generateLayer({
-          bodyPath: bodySample.path,
-          transientPath: transientSample.path,
-          texturePath: textureSample?.path,
-          settings,
-          category: actualCategory,
-        });
+          // Get preset settings with slight randomization
+          const baseSettings = SOUND_PRESETS[category];
+          const noPitch = NO_PITCH_CATEGORIES.includes(category);
+          
+          const settings: GenerateLayerSettings = {
+            ...baseSettings,
+            // Add slight variations (but respect category restrictions)
+            bodySemitones: noPitch ? 0 : baseSettings.bodySemitones + Math.floor(Math.random() * 5) - 2,
+            transientGainDb: baseSettings.transientGainDb + Math.floor(Math.random() * 5) - 2,
+            // Cap saturation at 5% for all easy mode generations
+            saturation: Math.min(MAX_SATURATION, Math.max(0, baseSettings.saturation + (Math.random() * 0.03 - 0.015))),
+            // No reverb in easy mode
+            reverbMix: 0,
+            clipperInGainDb: baseSettings.clipperInGainDb + Math.floor(Math.random() * 4) - 2,
+          };
 
-        setLastGenerated(result.outputPath);
-        setGenerationCount(prev => prev + 1);
-        addToRecents(result.outputPath, actualCategory);
-        onSoundGenerated?.(result.outputPath, actualCategory);
+          // Generate without output folder (for download)
+          const result = await generateLayer({
+            bodyPath: bodySample.path,
+            transientPath: transientSample.path,
+            texturePath: textureSample?.path,
+            settings,
+            category: category,
+          });
+
+          setLastGenerated(result.outputPath);
+          setGenerationCount(prev => prev + 1);
+          addToRecents(result.outputPath, category);
+          onSoundGenerated?.(result.outputPath, category);
+        }
       }
       
       onGenerated?.();
@@ -320,20 +327,32 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       </div>
 
       {/* Batch Size Selector */}
-      <div className="flex items-center gap-3">
-        <span className="text-drum-muted">Generate</span>
-        <select
-          value={batchSize}
-          onChange={(e) => setBatchSize(Number(e.target.value))}
-          className="bg-drum-elevated text-drum-text px-4 py-2 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none text-lg font-semibold"
-        >
-          {BATCH_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
-        <span className="text-drum-muted">sample{batchSize !== 1 ? 's' : ''} at once</span>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-drum-muted">Generate</span>
+          <select
+            value={batchSize}
+            onChange={(e) => setBatchSize(Number(e.target.value))}
+            className="bg-drum-elevated text-drum-text px-4 py-2 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none text-lg font-semibold"
+          >
+            {BATCH_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          <span className="text-drum-muted">
+            {selectedCategory === 'all' 
+              ? `per category (${batchSize * ALL_CATEGORIES.length} total)`
+              : `sample${batchSize !== 1 ? 's' : ''} at once`
+            }
+          </span>
+        </div>
+        {selectedCategory === 'all' && (
+          <span className="text-sm text-purple-400">
+            🌟 Will generate {batchSize} each of: Kick, Snare, Hat, Clap, Perc, 808, Donk
+          </span>
+        )}
       </div>
 
       {/* Big Generate Button */}
@@ -408,11 +427,13 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           <div className="flex flex-col items-center gap-4">
             <div className="text-center">
               <div className="text-lg text-orange-400 font-semibold flex items-center justify-center gap-2">
-                ✓ {batchSize > 1 ? `${batchSize} Sounds` : 'Sound'} Ready!
+                ✓ {selectedCategory === 'all' 
+                  ? `${batchSize * ALL_CATEGORIES.length} Sounds` 
+                  : batchSize > 1 ? `${batchSize} Sounds` : 'Sound'} Ready!
               </div>
               <div className="font-mono text-sm text-drum-text mt-1">
                 {lastGenerated.split('/').pop()}
-                {batchSize > 1 && <span className="text-drum-muted"> (latest)</span>}
+                {(batchSize > 1 || selectedCategory === 'all') && <span className="text-drum-muted"> (latest)</span>}
               </div>
             </div>
             <div className="flex gap-3">
