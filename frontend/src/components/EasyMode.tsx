@@ -164,15 +164,12 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     });
   };
 
-  const handlePlayRecent = useCallback((index: number) => {
+  // Play a specific recent sound (always plays, used by keyboard nav)
+  const playRecentSound = useCallback((index: number) => {
+    // Stop any current audio
     if (audioRef.current) {
       audioRef.current.pause();
-    }
-
-    if (playingRecentIndex === index) {
-      setPlayingRecentIndex(null);
-      setPlayingGenerated(false);
-      return;
+      audioRef.current = null;
     }
 
     const sound = recentSounds[index];
@@ -182,11 +179,33 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     audio.onended = () => {
       setPlayingRecentIndex(null);
     };
-    audio.play();
+    audio.play().catch(() => {
+      // Handle autoplay restrictions gracefully
+      setPlayingRecentIndex(null);
+    });
     audioRef.current = audio;
     setPlayingRecentIndex(index);
     setPlayingGenerated(false);
-  }, [recentSounds, playingRecentIndex]);
+  }, [recentSounds]);
+
+  // Click handler for recent items (toggles play/stop)
+  const handlePlayRecent = (index: number) => {
+    setSelectedRecentIndex(index);
+    if (playingRecentIndex === index) {
+      // Stop if clicking the same one
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      setPlayingRecentIndex(null);
+      setPlayingGenerated(false);
+      return;
+    }
+    playRecentSound(index);
+  };
+
+  // Track selected index for keyboard navigation (separate from playing)
+  const [selectedRecentIndex, setSelectedRecentIndex] = useState<number | null>(null);
 
   // Keyboard navigation for recents (up/down arrows)
   useEffect(() => {
@@ -201,18 +220,25 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const nextIndex = playingRecentIndex === null ? 0 : Math.min(playingRecentIndex + 1, recentSounds.length - 1);
-        handlePlayRecent(nextIndex);
+        setSelectedRecentIndex(prev => {
+          const nextIndex = prev === null ? 0 : Math.min(prev + 1, recentSounds.length - 1);
+          // Use setTimeout to avoid state batching issues
+          setTimeout(() => playRecentSound(nextIndex), 0);
+          return nextIndex;
+        });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const prevIndex = playingRecentIndex === null ? recentSounds.length - 1 : Math.max(playingRecentIndex - 1, 0);
-        handlePlayRecent(prevIndex);
+        setSelectedRecentIndex(prev => {
+          const prevIndex = prev === null ? recentSounds.length - 1 : Math.max(prev - 1, 0);
+          setTimeout(() => playRecentSound(prevIndex), 0);
+          return prevIndex;
+        });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [recentSounds, playingRecentIndex, handlePlayRecent]);
+  }, [recentSounds.length, playRecentSound]);
 
   const handleGenerate = async () => {
     // Trigger click animation
