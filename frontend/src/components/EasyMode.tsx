@@ -190,7 +190,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
   // Click handler for recent items (toggles play/stop)
   const handlePlayRecent = (index: number) => {
-    setSelectedRecentIndex(index);
     if (playingRecentIndex === index) {
       // Stop if clicking the same one
       if (audioRef.current) {
@@ -204,8 +203,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     playRecentSound(index);
   };
 
-  // Track selected index for keyboard navigation (separate from playing)
-  const [selectedRecentIndex, setSelectedRecentIndex] = useState<number | null>(null);
+  // Ref to track current index for keyboard navigation
+  const keyboardIndexRef = useRef<number | null>(null);
 
   // Keyboard navigation for recents (up/down arrows)
   useEffect(() => {
@@ -220,19 +219,16 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedRecentIndex(prev => {
-          const nextIndex = prev === null ? 0 : Math.min(prev + 1, recentSounds.length - 1);
-          // Use setTimeout to avoid state batching issues
-          setTimeout(() => playRecentSound(nextIndex), 0);
-          return nextIndex;
-        });
+        const currentIdx = keyboardIndexRef.current;
+        const nextIndex = currentIdx === null ? 0 : Math.min(currentIdx + 1, recentSounds.length - 1);
+        keyboardIndexRef.current = nextIndex;
+        playRecentSound(nextIndex);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedRecentIndex(prev => {
-          const prevIndex = prev === null ? recentSounds.length - 1 : Math.max(prev - 1, 0);
-          setTimeout(() => playRecentSound(prevIndex), 0);
-          return prevIndex;
-        });
+        const currentIdx = keyboardIndexRef.current;
+        const prevIndex = currentIdx === null ? recentSounds.length - 1 : Math.max(currentIdx - 1, 0);
+        keyboardIndexRef.current = prevIndex;
+        playRecentSound(prevIndex);
       }
     };
 
