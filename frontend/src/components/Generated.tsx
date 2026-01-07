@@ -49,6 +49,8 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedIndexInCategory, setSelectedIndexInCategory] = useState<number>(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Refs for scrolling to elements
+  const soundRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Group sounds by category
   const soundsByCategory = useMemo(() => {
@@ -77,7 +79,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
   }, [soundsByCategory]);
 
   // Play a sound and track its position
-  const playSoundInCategory = useCallback((category: string, index: number) => {
+  const playSoundInCategory = useCallback((category: string, index: number, shouldScroll = false) => {
     const categorySounds = soundsByCategory[category];
     if (!categorySounds || index < 0 || index >= categorySounds.length) return;
     
@@ -99,6 +101,15 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
     // Update selection
     setSelectedCategory(category);
     setSelectedIndexInCategory(index);
+    
+    // Scroll element into view if triggered by keyboard
+    if (shouldScroll) {
+      const refKey = `${category}-${index}`;
+      const element = soundRefs.current[refKey];
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
   }, [soundsByCategory]);
 
   const handlePlay = (sound: GeneratedSound) => {
@@ -144,7 +155,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
           e.preventDefault();
           const firstCategory = activeCategories[0];
           if (firstCategory && soundsByCategory[firstCategory].length > 0) {
-            playSoundInCategory(firstCategory, 0);
+            playSoundInCategory(firstCategory, 0, true);
           }
         }
         return;
@@ -157,13 +168,13 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
         const newIndex = selectedIndexInCategory < categorySounds.length - 1 
           ? selectedIndexInCategory + 1 
           : 0; // Wrap to top
-        playSoundInCategory(selectedCategory, newIndex);
+        playSoundInCategory(selectedCategory, newIndex, true);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         const newIndex = selectedIndexInCategory > 0 
           ? selectedIndexInCategory - 1 
           : categorySounds.length - 1; // Wrap to bottom
-        playSoundInCategory(selectedCategory, newIndex);
+        playSoundInCategory(selectedCategory, newIndex, true);
       } else if (e.key === 'ArrowLeft') {
         // Move to previous category column
         e.preventDefault();
@@ -172,7 +183,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
         const prevCategory = activeCategories[prevCatIndex];
         if (prevCategory) {
           const newIndex = Math.min(selectedIndexInCategory, soundsByCategory[prevCategory].length - 1);
-          playSoundInCategory(prevCategory, Math.max(0, newIndex));
+          playSoundInCategory(prevCategory, Math.max(0, newIndex), true);
         }
       } else if (e.key === 'ArrowRight') {
         // Move to next category column
@@ -182,7 +193,7 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
         const nextCategory = activeCategories[nextCatIndex];
         if (nextCategory) {
           const newIndex = Math.min(selectedIndexInCategory, soundsByCategory[nextCategory].length - 1);
-          playSoundInCategory(nextCategory, Math.max(0, newIndex));
+          playSoundInCategory(nextCategory, Math.max(0, newIndex), true);
         }
       }
     };
@@ -315,9 +326,11 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
                 {soundsByCategory[category].map((sound, index) => {
                   const isSelected = selectedCategory === category && selectedIndexInCategory === index;
+                  const refKey = `${category}-${index}`;
                   return (
                   <div
                     key={sound.id}
+                    ref={(el) => { soundRefs.current[refKey] = el; }}
                     className={`bg-drum-surface/50 rounded-lg p-2 transition-all ${
                       playingId === sound.id 
                         ? 'ring-2 ring-drum-accent bg-drum-accent/10' 
