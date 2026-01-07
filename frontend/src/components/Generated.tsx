@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
@@ -45,7 +45,69 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Create a flat list of all sounds for keyboard navigation
+  const flatSoundsList = useMemo(() => {
+    return [...sounds].reverse(); // Most recent first
+  }, [sounds]);
+
+  // Play a specific sound by index
+  const playSoundAtIndex = useCallback((index: number) => {
+    if (index < 0 || index >= flatSoundsList.length) return;
+    
+    const sound = flatSoundsList[index];
+    
+    // Stop current audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    // Play new sound
+    const audio = new Audio(getAudioPreviewUrl(sound.path));
+    audio.onended = () => setPlayingId(null);
+    audio.play();
+    audioRef.current = audio;
+    setPlayingId(sound.id);
+  }, [flatSoundsList]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if not in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (sounds.length === 0) return;
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(prev => {
+          const newIndex = prev < flatSoundsList.length - 1 ? prev + 1 : 0;
+          setTimeout(() => playSoundAtIndex(newIndex), 0);
+          return newIndex;
+        });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(prev => {
+          const newIndex = prev > 0 ? prev - 1 : flatSoundsList.length - 1;
+          setTimeout(() => playSoundAtIndex(newIndex), 0);
+          return newIndex;
+        });
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sounds.length, flatSoundsList, playSoundAtIndex]);
+
+  // Reset selection when sounds change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [sounds.length]);
 
   // Group sounds by category
   const soundsByCategory = useMemo(() => {
@@ -204,11 +266,18 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
               
               {/* Sounds in this category */}
               <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {soundsByCategory[category].map((sound) => (
+                {soundsByCategory[category].map((sound) => {
+                  const flatIndex = flatSoundsList.findIndex(s => s.id === sound.id);
+                  const isSelected = flatIndex === selectedIndex;
+                  return (
                   <div
                     key={sound.id}
                     className={`bg-drum-surface/50 rounded-lg p-2 transition-all ${
-                      playingId === sound.id ? 'ring-2 ring-drum-accent bg-drum-accent/10' : 'hover:bg-drum-surface'
+                      playingId === sound.id 
+                        ? 'ring-2 ring-drum-accent bg-drum-accent/10' 
+                        : isSelected 
+                          ? 'ring-1 ring-drum-accent/50 bg-drum-accent/5' 
+                          : 'hover:bg-drum-surface'
                     }`}
                   >
                     {/* Sound name */}
@@ -238,7 +307,8 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
                       </a>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -246,10 +316,10 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
       )}
 
       {/* Tip */}
-      {sounds.length > 1 && (
+      {sounds.length > 0 && (
         <div className="flex justify-center pt-4">
           <p className="text-sm text-drum-muted">
-            💡 Tip: Use <strong>All Types</strong> in Drum Machine to quickly fill all columns
+            💡 Tip: Use <strong>↑↓ arrow keys</strong> to preview sounds
           </p>
         </div>
       )}
