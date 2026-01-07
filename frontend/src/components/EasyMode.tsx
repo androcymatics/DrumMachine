@@ -262,7 +262,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     setGenerating(true);
     setError(null);
 
-    // If "All Types" is selected, generate batchSize of EACH category
+    // If "Drumkit" is selected, generate batchSize of EACH category
     const categoriesToGenerate: SampleCategory[] = selectedCategory === 'all' 
       ? ALL_CATEGORIES 
       : [selectedCategory];
@@ -386,7 +386,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             }`}
           >
             <span className="text-2xl">{CATEGORY_ICONS[cat]}</span>
-            <span className="capitalize">{cat === 'all' ? 'All Types' : cat}</span>
+            <span className="capitalize">{cat === 'all' ? 'Drumkit' : cat}</span>
           </button>
         ))}
       </div>
