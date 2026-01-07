@@ -337,20 +337,18 @@ const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Auto-load default samples on startup
 async function loadDefaultSamples() {
-  const library = await loadLibrary();
-  if (library.samples.length === 0) {
-    // Check if we have bundled samples
-    const defaultSamplesPath = path.join(process.cwd(), 'samples');
-    try {
-      await fs.access(defaultSamplesPath);
-      console.log('📦 Loading default sample library...');
-      const result = await addFolder(defaultSamplesPath);
-      console.log(`✅ Loaded ${result.added} default samples`);
-    } catch {
-      console.log('ℹ️ No default samples folder found');
-    }
-  } else {
-    console.log(`📚 Library already has ${library.samples.length} samples`);
+  const defaultSamplesPath = path.join(process.cwd(), 'samples');
+  
+  try {
+    await fs.access(defaultSamplesPath);
+    console.log('📦 Loading bundled sample library...');
+    // Always load bundled samples to ensure they're available
+    const result = await addFolder(defaultSamplesPath);
+    console.log(`✅ Loaded ${result.added} bundled samples (${result.total} total in library)`);
+  } catch {
+    console.log('ℹ️ No bundled samples folder found');
+    const library = await loadLibrary();
+    console.log(`📚 Library has ${library.samples.length} samples`);
   }
 }
 
