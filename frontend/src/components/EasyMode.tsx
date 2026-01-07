@@ -149,11 +149,26 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [generationCount, setGenerationCount] = useState(0);
   const [batchSize, setBatchSize] = useState(1);
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
-  const [recentSounds, setRecentSounds] = useState<RecentSound[]>([]);
+  const [recentSounds, setRecentSounds] = useState<RecentSound[]>(() => {
+    try {
+      const saved = localStorage.getItem('recentSounds');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Failed to load recent sounds:', e);
+    }
+    return [];
+  });
   const [playingRecentIndex, setPlayingRecentIndex] = useState<number | null>(null);
   const [clickRings, setClickRings] = useState<number[]>([]);
   const [isClicked, setIsClicked] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Save recents to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('recentSounds', JSON.stringify(recentSounds));
+  }, [recentSounds]);
 
   const addToRecents = (path: string, category: string) => {
     const name = path.split('/').pop() || 'Unknown';

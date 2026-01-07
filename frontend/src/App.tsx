@@ -19,8 +19,28 @@ function App() {
   const [transientSample, setTransientSample] = useState<Sample | null>(null);
   const [textureSample, setTextureSample] = useState<Sample | null>(null);
   
-  // Generated sounds history
-  const [generatedSounds, setGeneratedSounds] = useState<GeneratedSound[]>([]);
+  // Generated sounds history - load from localStorage
+  const [generatedSounds, setGeneratedSounds] = useState<GeneratedSound[]>(() => {
+    try {
+      const saved = localStorage.getItem('generatedSounds');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Convert date strings back to Date objects
+        return parsed.map((s: GeneratedSound & { createdAt: string }) => ({
+          ...s,
+          createdAt: new Date(s.createdAt)
+        }));
+      }
+    } catch (e) {
+      console.error('Failed to load generated sounds:', e);
+    }
+    return [];
+  });
+  
+  // Save generated sounds to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('generatedSounds', JSON.stringify(generatedSounds));
+  }, [generatedSounds]);
   
   const addGeneratedSound = useCallback((path: string, category: string) => {
     const name = path.split('/').pop() || 'Unknown';
