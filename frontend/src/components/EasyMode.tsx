@@ -283,16 +283,41 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           return;
         }
 
+        // Track used combinations to avoid duplicates in batch
+        const usedCombinations = new Set<string>();
+        
+        // Calculate max possible unique combinations (body × transient)
+        const maxUniqueCombos = samples.length * (samples.length - 1);
+        const actualBatchSize = Math.min(batchSize, maxUniqueCombos);
+
         // Generate batchSize samples for this category
-        for (let i = 0; i < batchSize; i++) {
+        for (let i = 0; i < actualBatchSize; i++) {
           currentProgress++;
           setGeneratingProgress({ current: currentProgress, total: totalGenerations });
 
-          // Shuffle and pick random samples for each generation
-          const shuffled = [...samples].sort(() => Math.random() - 0.5);
-          const bodySample = shuffled[0];
-          const transientSample = shuffled[1];
-          const textureSample = shuffled.length > 2 && Math.random() > 0.5 ? shuffled[2] : undefined;
+          // Find a unique body+transient combination
+          let bodySample, transientSample, textureSample;
+          let comboKey: string;
+          let attempts = 0;
+          const maxAttempts = 100;
+          
+          do {
+            // Shuffle and pick random samples
+            const shuffled = [...samples].sort(() => Math.random() - 0.5);
+            bodySample = shuffled[0];
+            transientSample = shuffled[1];
+            comboKey = `${bodySample.id}-${transientSample.id}`;
+            attempts++;
+          } while (usedCombinations.has(comboKey) && attempts < maxAttempts);
+          
+          // Mark this combination as used
+          usedCombinations.add(comboKey);
+          
+          // Optional texture (pick from remaining samples)
+          const remainingSamples = samples.filter(s => s.id !== bodySample.id && s.id !== transientSample.id);
+          textureSample = remainingSamples.length > 0 && Math.random() > 0.5 
+            ? remainingSamples[Math.floor(Math.random() * remainingSamples.length)] 
+            : undefined;
 
           // Get preset settings with slight randomization
           const baseSettings = SOUND_PRESETS[category];
