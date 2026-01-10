@@ -385,8 +385,11 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
   return (
     <div className="galaxy-bg fixed inset-0 overflow-auto">
-      {/* Particle animation layer */}
-      <ParticleBackground />
+      {/* Particle animation layer - intensifies during generation */}
+      <ParticleBackground 
+        intensity={generating ? (generatingProgress.total > 0 ? generatingProgress.current / generatingProgress.total : 0.5) : 0}
+        speedMultiplier={generating ? 1.5 + (generatingProgress.total > 0 ? (generatingProgress.current / generatingProgress.total) * 1.5 : 0.5) : 1}
+      />
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 pt-32 pb-12 px-4 min-h-full">

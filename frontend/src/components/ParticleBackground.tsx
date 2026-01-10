@@ -12,10 +12,23 @@ interface Particle {
   trail: { x: number; y: number }[];
 }
 
-export function ParticleBackground() {
+interface ParticleBackgroundProps {
+  intensity?: number; // 0-1, controls spawn rate
+  speedMultiplier?: number; // 1 = normal, higher = faster
+}
+
+export function ParticleBackground({ intensity = 0, speedMultiplier = 1 }: ParticleBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
+  const intensityRef = useRef(intensity);
+  const speedMultiplierRef = useRef(speedMultiplier);
+
+  // Update refs when props change
+  useEffect(() => {
+    intensityRef.current = intensity;
+    speedMultiplierRef.current = speedMultiplier;
+  }, [intensity, speedMultiplier]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -43,7 +56,7 @@ export function ParticleBackground() {
     ];
 
     // Create a particle that shoots toward center
-    const createParticle = (): Particle => {
+    const createParticle = (baseSpeed?: number): Particle => {
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       
@@ -77,7 +90,7 @@ export function ParticleBackground() {
       const dist = Math.sqrt(dx * dx + dy * dy);
       
       // Speed varies for visual interest
-      const speed = 2 + Math.random() * 3;
+      const speed = baseSpeed || (2 + Math.random() * 3);
       
       return {
         x,
@@ -93,26 +106,44 @@ export function ParticleBackground() {
     };
 
     // Initialize particles
-    const particleCount = 60;
-    particlesRef.current = Array.from({ length: particleCount }, () => createParticle());
+    const baseParticleCount = 60;
+    particlesRef.current = Array.from({ length: baseParticleCount }, () => createParticle());
+
+    let lastSpawnTime = 0;
 
     // Animation loop
-    const animate = () => {
+    const animate = (timestamp: number) => {
       // Clear with slight fade for trail effect
-      ctx.fillStyle = 'rgba(15, 10, 26, 0.15)';
+      const fadeAmount = 0.15 + intensityRef.current * 0.1;
+      ctx.fillStyle = `rgba(15, 10, 26, ${fadeAmount})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const particles = particlesRef.current;
+      const currentIntensity = intensityRef.current;
+      const currentSpeedMult = speedMultiplierRef.current;
 
-      // Draw center glow
-      const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 100);
-      centerGradient.addColorStop(0, 'rgba(249, 115, 22, 0.15)');
-      centerGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.08)');
+      // Spawn extra particles when intensity is high
+      const spawnInterval = Math.max(20, 100 - currentIntensity * 80); // 100ms to 20ms
+      if (currentIntensity > 0 && timestamp - lastSpawnTime > spawnInterval) {
+        const extraParticles = Math.ceil(currentIntensity * 5);
+        for (let i = 0; i < extraParticles; i++) {
+          const speed = (3 + Math.random() * 4) * currentSpeedMult;
+          particles.push(createParticle(speed));
+        }
+        lastSpawnTime = timestamp;
+      }
+
+      // Draw center glow (brighter when intensity is high)
+      const glowIntensity = 0.15 + currentIntensity * 0.3;
+      const glowSize = 100 + currentIntensity * 50;
+      const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowSize);
+      centerGradient.addColorStop(0, `rgba(249, 115, 22, ${glowIntensity})`);
+      centerGradient.addColorStop(0.5, `rgba(139, 92, 246, ${glowIntensity * 0.5})`);
       centerGradient.addColorStop(1, 'transparent');
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+      ctx.arc(centerX, centerY, glowSize, 0, Math.PI * 2);
       ctx.fillStyle = centerGradient;
       ctx.fill();
 
@@ -121,13 +152,15 @@ export function ParticleBackground() {
 
         // Store trail position
         p.trail.push({ x: p.x, y: p.y });
-        if (p.trail.length > 15) {
+        const maxTrailLength = 15 + Math.floor(currentIntensity * 10);
+        if (p.trail.length > maxTrailLength) {
           p.trail.shift();
         }
 
-        // Update position - straight line to center
-        p.x += p.vx;
-        p.y += p.vy;
+        // Update position - apply speed multiplier
+        const speedBoost = currentSpeedMult;
+        p.x += p.vx * speedBoost;
+        p.y += p.vy * speedBoost;
 
         // Calculate distance to center
         const dx = centerX - p.x;
@@ -141,7 +174,13 @@ export function ParticleBackground() {
 
         // Reset particle when it reaches center or fades out
         if (distToCenter < 20 || p.alpha <= 0.05) {
-          Object.assign(p, createParticle());
+          // Remove extra particles when intensity drops, keep base count
+          if (particles.length > baseParticleCount && currentIntensity < 0.3) {
+            particles.splice(i, 1);
+          } else {
+            const newSpeed = (2 + Math.random() * 3) * (currentIntensity > 0 ? currentSpeedMult : 1);
+            Object.assign(p, createParticle(newSpeed));
+          }
           continue;
         }
 
@@ -161,24 +200,26 @@ export function ParticleBackground() {
           trailGradient.addColorStop(1, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.6})`));
           
           ctx.strokeStyle = trailGradient;
-          ctx.lineWidth = p.size;
+          ctx.lineWidth = p.size * (1 + currentIntensity * 0.5);
           ctx.lineCap = 'round';
           ctx.stroke();
         }
 
         // Draw particle head (brighter)
+        const headSize = p.size * (1.5 + currentIntensity * 0.5);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, headSize, 0, Math.PI * 2);
         ctx.fillStyle = p.color.replace(/[\d.]+\)$/, `${p.alpha})`);
         ctx.fill();
 
         // Draw glow around particle
-        const glowGradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-        glowGradient.addColorStop(0, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.4})`));
-        glowGradient.addColorStop(1, 'transparent');
+        const glowRadius = p.size * (4 + currentIntensity * 2);
+        const particleGlow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
+        particleGlow.addColorStop(0, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.4})`));
+        particleGlow.addColorStop(1, 'transparent');
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
-        ctx.fillStyle = glowGradient;
+        ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = particleGlow;
         ctx.fill();
       }
 
@@ -186,7 +227,7 @@ export function ParticleBackground() {
     };
 
     // Start animation
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
 
     // Cleanup
     return () => {
