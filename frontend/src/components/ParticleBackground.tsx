@@ -8,14 +8,14 @@ interface Particle {
   size: number;
   color: string;
   alpha: number;
-  decay: number;
+  speed: number;
+  trail: { x: number; y: number }[];
 }
 
 export function ParticleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
-  const mouseRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -34,123 +34,152 @@ export function ParticleBackground() {
 
     // Particle colors (orange/purple theme)
     const colors = [
-      'rgba(249, 115, 22, 0.8)',   // orange-500
-      'rgba(251, 146, 60, 0.7)',   // orange-400
-      'rgba(139, 92, 246, 0.6)',   // purple-500
-      'rgba(168, 85, 247, 0.5)',   // purple-400
-      'rgba(236, 72, 153, 0.5)',   // pink-500
-      'rgba(255, 255, 255, 0.4)',  // white
+      'rgba(249, 115, 22, 1)',    // orange-500
+      'rgba(251, 146, 60, 1)',    // orange-400
+      'rgba(139, 92, 246, 1)',    // purple-500
+      'rgba(168, 85, 247, 1)',    // purple-400
+      'rgba(236, 72, 153, 1)',    // pink-500
+      'rgba(255, 255, 255, 1)',   // white
     ];
 
-    // Create initial particles
-    const createParticle = (x?: number, y?: number): Particle => {
-      const useRandom = x === undefined || y === undefined;
+    // Create a particle that shoots toward center
+    const createParticle = (): Particle => {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      
+      // Spawn from random edge
+      let x: number, y: number;
+      const edge = Math.floor(Math.random() * 4);
+      const margin = 50;
+      
+      switch (edge) {
+        case 0: // Top
+          x = Math.random() * canvas.width;
+          y = -margin;
+          break;
+        case 1: // Right
+          x = canvas.width + margin;
+          y = Math.random() * canvas.height;
+          break;
+        case 2: // Bottom
+          x = Math.random() * canvas.width;
+          y = canvas.height + margin;
+          break;
+        default: // Left
+          x = -margin;
+          y = Math.random() * canvas.height;
+          break;
+      }
+      
+      // Calculate direction to center
+      const dx = centerX - x;
+      const dy = centerY - y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // Speed varies for visual interest
+      const speed = 2 + Math.random() * 3;
+      
       return {
-        x: useRandom ? Math.random() * canvas.width : x,
-        y: useRandom ? Math.random() * canvas.height : y,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 3 + 1,
+        x,
+        y,
+        vx: (dx / dist) * speed,
+        vy: (dy / dist) * speed,
+        size: Math.random() * 2 + 1,
         color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.5 + 0.3,
-        decay: 0.001 + Math.random() * 0.002,
+        alpha: 0.7 + Math.random() * 0.3,
+        speed,
+        trail: [],
       };
     };
 
     // Initialize particles
-    const particleCount = 80;
+    const particleCount = 60;
     particlesRef.current = Array.from({ length: particleCount }, () => createParticle());
-
-    // Mouse move handler
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-      
-      // Add particles near mouse occasionally
-      if (Math.random() > 0.85) {
-        particlesRef.current.push(createParticle(
-          e.clientX + (Math.random() - 0.5) * 50,
-          e.clientY + (Math.random() - 0.5) * 50
-        ));
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove);
 
     // Animation loop
     const animate = () => {
-      ctx.fillStyle = 'rgba(15, 10, 26, 0.05)';
+      // Clear with slight fade for trail effect
+      ctx.fillStyle = 'rgba(15, 10, 26, 0.15)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
       const particles = particlesRef.current;
+
+      // Draw center glow
+      const centerGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 100);
+      centerGradient.addColorStop(0, 'rgba(249, 115, 22, 0.15)');
+      centerGradient.addColorStop(0.5, 'rgba(139, 92, 246, 0.08)');
+      centerGradient.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+      ctx.fillStyle = centerGradient;
+      ctx.fill();
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
 
-        // Update position
+        // Store trail position
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > 15) {
+          p.trail.shift();
+        }
+
+        // Update position - straight line to center
         p.x += p.vx;
         p.y += p.vy;
 
-        // Gentle drift toward center
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        p.vx += (centerX - p.x) * 0.00002;
-        p.vy += (centerY - p.y) * 0.00002;
+        // Calculate distance to center
+        const dx = centerX - p.x;
+        const dy = centerY - p.y;
+        const distToCenter = Math.sqrt(dx * dx + dy * dy);
 
-        // Mouse repulsion (subtle)
-        const dx = p.x - mouseRef.current.x;
-        const dy = p.y - mouseRef.current.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 150) {
-          const force = (150 - dist) / 150 * 0.02;
-          p.vx += dx / dist * force;
-          p.vy += dy / dist * force;
+        // Fade as approaching center
+        if (distToCenter < 150) {
+          p.alpha = (distToCenter / 150) * 0.8;
         }
 
-        // Fade out
-        p.alpha -= p.decay;
-
-        // Remove dead particles or reset
-        if (p.alpha <= 0 || p.x < -50 || p.x > canvas.width + 50 || p.y < -50 || p.y > canvas.height + 50) {
-          if (particles.length > particleCount) {
-            particles.splice(i, 1);
-          } else {
-            // Reset particle
-            Object.assign(p, createParticle());
-          }
+        // Reset particle when it reaches center or fades out
+        if (distToCenter < 20 || p.alpha <= 0.05) {
+          Object.assign(p, createParticle());
           continue;
         }
 
-        // Draw particle
+        // Draw trail
+        if (p.trail.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(p.trail[0].x, p.trail[0].y);
+          for (let j = 1; j < p.trail.length; j++) {
+            ctx.lineTo(p.trail[j].x, p.trail[j].y);
+          }
+          ctx.lineTo(p.x, p.y);
+          
+          const trailGradient = ctx.createLinearGradient(
+            p.trail[0].x, p.trail[0].y, p.x, p.y
+          );
+          trailGradient.addColorStop(0, 'transparent');
+          trailGradient.addColorStop(1, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.6})`));
+          
+          ctx.strokeStyle = trailGradient;
+          ctx.lineWidth = p.size;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+
+        // Draw particle head (brighter)
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * 1.5, 0, Math.PI * 2);
         ctx.fillStyle = p.color.replace(/[\d.]+\)$/, `${p.alpha})`);
         ctx.fill();
 
-        // Draw glow
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-        gradient.addColorStop(0, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.3})`));
-        gradient.addColorStop(1, 'transparent');
+        // Draw glow around particle
+        const glowGradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+        glowGradient.addColorStop(0, p.color.replace(/[\d.]+\)$/, `${p.alpha * 0.4})`));
+        glowGradient.addColorStop(1, 'transparent');
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
         ctx.fill();
-
-        // Connect nearby particles with lines
-        for (let j = i - 1; j >= 0; j--) {
-          const p2 = particles[j];
-          const dx = p.x - p2.x;
-          const dy = p.y - p2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 100) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            const lineAlpha = (1 - distance / 100) * 0.15 * Math.min(p.alpha, p2.alpha);
-            ctx.strokeStyle = `rgba(249, 115, 22, ${lineAlpha})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        }
       }
 
       animationRef.current = requestAnimationFrame(animate);
@@ -162,7 +191,6 @@ export function ParticleBackground() {
     // Cleanup
     return () => {
       window.removeEventListener('resize', resize);
-      window.removeEventListener('mousemove', handleMouseMove);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
@@ -177,4 +205,3 @@ export function ParticleBackground() {
     />
   );
 }
-
