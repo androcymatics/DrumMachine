@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { generateLayer, searchSamples, getAudioPreviewUrl, getAudioDownloadUrl } from '../api';
 import type { SampleCategory, GenerateLayerSettings } from '../types';
 import { playCompletionSound } from '../utils/sounds';
+import { ParticleBackground } from './ParticleBackground';
 
 interface EasyModeProps {
   onGenerated?: () => void;
@@ -384,12 +385,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
 
   return (
     <div className="galaxy-bg fixed inset-0 overflow-auto">
-      {/* Stars layer */}
-      <div className="stars">
-        <div className="shooting-star"></div>
-        <div className="shooting-star"></div>
-        <div className="shooting-star"></div>
-      </div>
+      {/* Particle animation layer */}
+      <ParticleBackground />
       
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 pt-32 pb-12 px-4 min-h-full">
