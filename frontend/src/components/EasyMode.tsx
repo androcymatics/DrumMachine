@@ -576,7 +576,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             <div className="bg-gradient-to-r from-orange-500/20 to-purple-500/20 px-4 py-3 border-b border-drum-border/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-orange-400">🎵</span>
                   <span className="font-semibold text-drum-text">Recents</span>
                   <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
                     {recentSounds.length}
@@ -640,7 +639,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       {recentSounds.length > 0 && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 lg:hidden">
           <div className="bg-drum-surface/95 backdrop-blur-xl border border-drum-border/50 rounded-full shadow-2xl shadow-black/50 px-4 py-2 flex items-center gap-3">
-            <span className="text-orange-400">🎵</span>
             <span className="text-sm text-drum-text font-medium">{recentSounds.length} recent</span>
             {playingRecentIndex !== null ? (
               <button
