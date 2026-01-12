@@ -366,8 +366,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         speedMultiplier={generating ? 1.2 + (generatingProgress.total > 0 ? (generatingProgress.current / generatingProgress.total) * 0.5 : 0.2) : 1}
       />
       
-      {/* Content - Centered */}
-      <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-4 h-screen overflow-hidden">
+      {/* Content - Centered with slight offset down */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-4 h-screen overflow-hidden pt-16">
         {/* Title */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Drum Machine</h2>
