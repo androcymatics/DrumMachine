@@ -145,9 +145,7 @@ interface RecentSound {
 export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
   const [selectedCategory, setSelectedCategory] = useState<SampleCategory | 'all'>('kick');
   const [generating, setGenerating] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [playingGenerated, setPlayingGenerated] = useState(false);
   const [generationCount, setGenerationCount] = useState(0);
   const [batchSize, setBatchSize] = useState(1);
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
@@ -202,7 +200,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     });
     audioRef.current = audio;
     setPlayingRecentIndex(index);
-    setPlayingGenerated(false);
   }, [recentSounds]);
 
   // Click handler for recent items (toggles play/stop)
@@ -214,7 +211,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         audioRef.current = null;
       }
       setPlayingRecentIndex(null);
-      setPlayingGenerated(false);
       return;
     }
     playRecentSound(index);
@@ -345,7 +341,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             category: category,
           });
 
-          setLastGenerated(result.outputPath);
           setGenerationCount(prev => prev + 1);
           addToRecents(result.outputPath, category);
           onSoundGenerated?.(result.outputPath, category);
