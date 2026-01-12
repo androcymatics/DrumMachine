@@ -155,6 +155,7 @@ function App() {
       {activeTab === 'easy' && (
         <EasyMode 
           onSoundGenerated={addGeneratedSound}
+          onViewAll={() => setActiveTab('generated')}
         />
       )}
 

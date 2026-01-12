@@ -7,6 +7,7 @@ import { ParticleBackground } from './ParticleBackground';
 interface EasyModeProps {
   onGenerated?: () => void;
   onSoundGenerated?: (path: string, category: string) => void;
+  onViewAll?: () => void;
 }
 
 // Categories that should NOT have body pitch changes
@@ -142,7 +143,7 @@ interface RecentSound {
   category: string;
 }
 
-export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
+export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeProps) {
   const [selectedCategory, setSelectedCategory] = useState<SampleCategory | 'all'>('kick');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -509,7 +510,15 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
                   ✕
                 </button>
               </div>
-              <p className="text-xs text-drum-muted mt-1">↑↓ to preview</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-drum-muted">↑↓ to preview</p>
+                <button
+                  onClick={onViewAll}
+                  className="text-xs text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                >
+                  View All →
+                </button>
+              </div>
             </div>
             
             {/* Recents List */}
@@ -583,6 +592,12 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             >
               ⬇
             </a>
+            <button
+              onClick={onViewAll}
+              className="text-xs text-orange-400 hover:text-orange-300 transition-colors font-medium"
+            >
+              All →
+            </button>
           </div>
         </div>
       )}
