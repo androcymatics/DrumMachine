@@ -619,6 +619,35 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
           </div>
         </div>
       )}
+
+      {/* Desktop: Show Recents Button (when hidden) */}
+      {recentSounds.length > 0 && !showRecents && (
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:block">
+          <button
+            onClick={() => setShowRecents(true)}
+            className="bg-drum-surface/90 backdrop-blur-xl border border-drum-border/50 rounded-2xl shadow-2xl shadow-black/50 px-4 py-3 hover:bg-drum-surface transition-all flex items-center gap-2 group"
+          >
+            <span className="font-semibold text-drum-text">Recents</span>
+            <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
+              {recentSounds.length}
+            </span>
+            <span className="text-drum-muted group-hover:text-orange-400 transition-colors">→</span>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile: Show Recents Button (when hidden) */}
+      {recentSounds.length > 0 && !showRecents && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 lg:hidden">
+          <button
+            onClick={() => setShowRecents(true)}
+            className="bg-drum-surface/95 backdrop-blur-xl border border-drum-border/50 rounded-full shadow-2xl shadow-black/50 px-4 py-2 flex items-center gap-2 hover:bg-drum-surface transition-all"
+          >
+            <span className="text-sm text-drum-text font-medium">{recentSounds.length} recent</span>
+            <span className="text-orange-400">→</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
