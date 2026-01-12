@@ -366,21 +366,21 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         speedMultiplier={generating ? 1.2 + (generatingProgress.total > 0 ? (generatingProgress.current / generatingProgress.total) * 0.5 : 0.2) : 1}
       />
       
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-4 pt-28 px-4 h-screen overflow-hidden">
+      {/* Content - Centered */}
+      <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-4 h-screen overflow-hidden">
         {/* Title */}
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-1 drop-shadow-lg">Drum Machine</h2>
-          <p className="text-gray-300 text-sm">Pick a sound type and smash that button!</p>
+          <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Drum Machine</h2>
+          <p className="text-gray-300">Pick a sound type and smash that button!</p>
         </div>
 
         {/* Category Selector */}
-        <div className="flex flex-wrap justify-center gap-2 max-w-2xl">
+        <div className="flex flex-wrap justify-center gap-3 max-w-xl">
         {DISPLAY_CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+            className={`px-6 py-4 rounded-xl text-lg font-semibold transition-all duration-200 flex items-center gap-2 ${
               selectedCategory === cat
                 ? cat === 'all' 
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-105 shadow-lg shadow-purple-500/30'
@@ -388,7 +388,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
                 : 'bg-drum-elevated text-drum-muted hover:bg-drum-surface hover:text-drum-text'
             }`}
           >
-            <span className="text-lg">{CATEGORY_ICONS[cat]}</span>
+            <span className="text-2xl">{CATEGORY_ICONS[cat]}</span>
             <span className="capitalize">{cat === 'all' ? 'Drumkit' : cat}</span>
           </button>
         ))}
@@ -441,10 +441,10 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         <button
           onClick={handleGenerate}
           disabled={generating}
-          className={`relative w-36 h-36 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 
-            text-white text-xl font-bold shadow-2xl 
+          className={`relative w-48 h-48 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 
+            text-white text-2xl font-bold shadow-2xl 
             transition-all duration-200 
-            flex flex-col items-center justify-center gap-1
+            flex flex-col items-center justify-center gap-2
             ${generating 
               ? 'scale-95 opacity-80' 
               : isClicked
@@ -454,8 +454,8 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         >
           {generating ? (
             <>
-              <span className="text-4xl animate-spin">⚡</span>
-              <span className="text-sm">
+              <span className="text-5xl animate-spin">⚡</span>
+              <span className="text-lg">
                 {generatingProgress.total > 1 
                   ? `${generatingProgress.current}/${generatingProgress.total}`
                   : 'Creating...'
@@ -464,9 +464,9 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
             </>
           ) : (
             <>
-              <span className={`text-4xl ${isClicked ? 'animate-bounce' : ''}`}>⚡</span>
-              <span className="text-sm">GENERATE</span>
-              {batchSize > 1 && <span className="text-xs font-normal">×{batchSize}</span>}
+              <span className={`text-5xl ${isClicked ? 'animate-bounce' : ''}`}>⚡</span>
+              <span>GENERATE</span>
+              {batchSize > 1 && <span className="text-sm font-normal">×{batchSize}</span>}
             </>
           )}
         </button>
