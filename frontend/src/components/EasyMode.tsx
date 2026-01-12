@@ -519,49 +519,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
         </div>
       )}
 
-      {/* Last Generated Result */}
-      {lastGenerated && !error && (
-        <div className="card bg-gradient-to-r from-orange-500/20 to-drum-accent/10 border-orange-500/50 max-w-md w-full">
-          <div className="flex flex-col items-center gap-4">
-            <div className="text-center">
-              <div className="text-lg text-orange-400 font-semibold flex items-center justify-center gap-2">
-                ✓ {selectedCategory === 'all' 
-                  ? `${batchSize * ALL_CATEGORIES.length} Sounds` 
-                  : batchSize > 1 ? `${batchSize} Sounds` : 'Sound'} Ready!
-              </div>
-              <div className="font-mono text-sm text-drum-text mt-1">
-                {lastGenerated.split('/').pop()}
-                {(batchSize > 1 || selectedCategory === 'all') && <span className="text-drum-muted"> (latest)</span>}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handlePlayGenerated}
-                className={`btn ${
-                  playingGenerated
-                    ? 'btn-primary'
-                    : 'btn-secondary'
-                }`}
-              >
-                {playingGenerated ? '⏹ Stop' : '▶ Preview'}
-              </button>
-              <a
-                href={getAudioDownloadUrl(lastGenerated)}
-                className="btn bg-orange-500 hover:bg-orange-600 text-white px-6"
-                download
-              >
-                ⬇ Download
-              </a>
-            </div>
-            {batchSize > 1 && (
-              <p className="text-sm text-drum-muted">
-                View all generated sounds in the <strong>Generated</strong> tab
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Tip */}
       <p className="text-drum-muted text-sm text-center max-w-md">
         💡 For more control over samples and effects, use the <strong>Advanced</strong> tab
