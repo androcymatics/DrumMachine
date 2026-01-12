@@ -367,7 +367,7 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       />
       
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 pt-32 pb-12 px-4 min-h-full">
+      <div className="relative z-10 flex flex-col items-center gap-8 pt-32 pb-8 px-4 min-h-screen">
         {/* Title */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Drum Machine</h2>
