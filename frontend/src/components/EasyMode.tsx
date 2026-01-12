@@ -164,6 +164,7 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
   const [playingRecentIndex, setPlayingRecentIndex] = useState<number | null>(null);
   const [clickRings, setClickRings] = useState<number[]>([]);
   const [isClicked, setIsClicked] = useState(false);
+  const [showRecents, setShowRecents] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Save recents to localStorage whenever they change
@@ -178,6 +179,7 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
       const updated = [newRecent, ...prev.filter(s => s.path !== path)];
       return updated.slice(0, MAX_RECENTS);
     });
+    setShowRecents(true); // Show recents when new sound is added
   };
 
   // Play a specific recent sound (always plays, used by keyboard nav)
@@ -491,7 +493,7 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
       </div>
 
       {/* Floating Recents Panel - Fixed to right side */}
-      {recentSounds.length > 0 && (
+      {recentSounds.length > 0 && showRecents && (
         <div className="fixed right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:block">
           <div className="bg-drum-surface/90 backdrop-blur-xl border border-drum-border/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-64">
             {/* Header */}
@@ -503,12 +505,22 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
                     {recentSounds.length}
                   </span>
                 </div>
-                <button
-                  onClick={() => setRecentSounds([])}
-                  className="text-xs text-drum-muted hover:text-red-400 transition-colors"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowRecents(false)}
+                    className="text-xs text-drum-muted hover:text-drum-text transition-colors"
+                    title="Hide"
+                  >
+                    Hide
+                  </button>
+                  <button
+                    onClick={() => setRecentSounds([])}
+                    className="text-xs text-drum-muted hover:text-red-400 transition-colors"
+                    title="Clear"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
               <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-drum-muted">↑↓ to preview</p>
@@ -566,7 +578,7 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
       )}
 
       {/* Mobile Recents - Collapsed bottom bar */}
-      {recentSounds.length > 0 && (
+      {recentSounds.length > 0 && showRecents && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 lg:hidden">
           <div className="bg-drum-surface/95 backdrop-blur-xl border border-drum-border/50 rounded-full shadow-2xl shadow-black/50 px-4 py-2 flex items-center gap-3">
             <span className="text-sm text-drum-text font-medium">{recentSounds.length} recent</span>
@@ -597,6 +609,12 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
               className="text-xs text-orange-400 hover:text-orange-300 transition-colors font-medium"
             >
               All →
+            </button>
+            <button
+              onClick={() => setShowRecents(false)}
+              className="text-xs text-drum-muted hover:text-drum-text transition-colors"
+            >
+              Hide
             </button>
           </div>
         </div>
