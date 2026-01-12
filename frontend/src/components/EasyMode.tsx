@@ -363,26 +363,6 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
     }
   };
 
-  const handlePlayGenerated = () => {
-    if (!lastGenerated) return;
-
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-
-    if (playingGenerated) {
-      setPlayingGenerated(false);
-      setPlayingRecentIndex(null);
-      return;
-    }
-
-    const audio = new Audio(getAudioPreviewUrl(lastGenerated));
-    audio.onended = () => setPlayingGenerated(false);
-    audio.play();
-    audioRef.current = audio;
-    setPlayingGenerated(true);
-  };
-
   return (
     <div className="galaxy-bg fixed inset-0 overflow-auto">
       {/* Particle animation layer - gently intensifies during generation */}
