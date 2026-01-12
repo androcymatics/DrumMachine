@@ -566,51 +566,64 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
       <p className="text-drum-muted text-sm text-center max-w-md">
         💡 For more control over samples and effects, use the <strong>Advanced</strong> tab
       </p>
+      </div>
 
-      {/* Recents Section */}
+      {/* Floating Recents Panel - Fixed to right side */}
       {recentSounds.length > 0 && (
-        <div className="w-full max-w-xl mt-4">
-          <div className="card bg-drum-elevated/50">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-drum-text flex items-center gap-2">
-                🕐 Recents
-                <span className="text-sm font-normal text-drum-muted">({recentSounds.length})</span>
-              </h3>
-              <button
-                onClick={() => setRecentSounds([])}
-                className="text-sm text-drum-muted hover:text-red-400 transition-colors"
-              >
-                Clear
-              </button>
+        <div className="fixed right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:block">
+          <div className="bg-drum-surface/90 backdrop-blur-xl border border-drum-border/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-64">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-orange-500/20 to-purple-500/20 px-4 py-3 border-b border-drum-border/30">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-orange-400">🎵</span>
+                  <span className="font-semibold text-drum-text">Recents</span>
+                  <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
+                    {recentSounds.length}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setRecentSounds([])}
+                  className="text-xs text-drum-muted hover:text-red-400 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-xs text-drum-muted mt-1">↑↓ to preview</p>
             </div>
-            <div className="max-h-48 overflow-y-auto space-y-1">
+            
+            {/* Recents List */}
+            <div className="max-h-80 overflow-y-auto">
               {recentSounds.map((sound, index) => (
                 <div
                   key={sound.path}
-                  className={`flex items-center gap-2 p-2 rounded-lg transition-colors ${
+                  className={`flex items-center gap-2 px-3 py-2 border-b border-drum-border/20 transition-all ${
                     playingRecentIndex === index 
-                      ? 'bg-orange-500/20 ring-1 ring-orange-500/50' 
-                      : 'hover:bg-drum-surface'
+                      ? 'bg-orange-500/15' 
+                      : 'hover:bg-drum-elevated/50'
                   }`}
                 >
                   <button
                     onClick={() => handlePlayRecent(index)}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all flex-shrink-0 text-sm ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0 ${
                       playingRecentIndex === index
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-drum-surface hover:bg-drum-accent/20'
+                        ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                        : 'bg-drum-elevated hover:bg-orange-500/20 text-drum-muted hover:text-orange-400'
                     }`}
                   >
-                    {playingRecentIndex === index ? '⏹' : '▶'}
+                    {playingRecentIndex === index ? '⏸' : '▶'}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-drum-text truncate text-sm">
+                    <div className="font-medium text-drum-text truncate text-xs">
                       {sound.name}
+                    </div>
+                    <div className="text-[10px] text-drum-muted capitalize">
+                      {sound.category}
                     </div>
                   </div>
                   <a
                     href={getAudioDownloadUrl(sound.path)}
-                    className="text-drum-muted hover:text-orange-400 transition-colors flex-shrink-0 text-sm"
+                    className="w-7 h-7 rounded-lg flex items-center justify-center bg-drum-elevated hover:bg-orange-500/20 text-drum-muted hover:text-orange-400 transition-all flex-shrink-0"
                     download
                     title="Download"
                   >
@@ -622,7 +635,38 @@ export function EasyMode({ onGenerated, onSoundGenerated }: EasyModeProps) {
           </div>
         </div>
       )}
-      </div>
+
+      {/* Mobile Recents - Collapsed bottom bar */}
+      {recentSounds.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 lg:hidden">
+          <div className="bg-drum-surface/95 backdrop-blur-xl border border-drum-border/50 rounded-full shadow-2xl shadow-black/50 px-4 py-2 flex items-center gap-3">
+            <span className="text-orange-400">🎵</span>
+            <span className="text-sm text-drum-text font-medium">{recentSounds.length} recent</span>
+            {playingRecentIndex !== null ? (
+              <button
+                onClick={() => handlePlayRecent(playingRecentIndex)}
+                className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center"
+              >
+                ⏸
+              </button>
+            ) : (
+              <button
+                onClick={() => handlePlayRecent(0)}
+                className="w-8 h-8 rounded-full bg-drum-elevated text-drum-text flex items-center justify-center hover:bg-orange-500/20"
+              >
+                ▶
+              </button>
+            )}
+            <a
+              href={getAudioDownloadUrl(recentSounds[0]?.path)}
+              className="w-8 h-8 rounded-full bg-drum-elevated text-drum-muted flex items-center justify-center hover:bg-orange-500/20 hover:text-orange-400"
+              download
+            >
+              ⬇
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
