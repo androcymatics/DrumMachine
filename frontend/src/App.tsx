@@ -151,8 +151,15 @@ function App() {
         </div>
       </header>
 
+      {/* Easy Mode - rendered outside main for full viewport coverage */}
+      {activeTab === 'easy' && (
+        <EasyMode 
+          onSoundGenerated={addGeneratedSound}
+        />
+      )}
+
       {/* Main Content */}
-      <main className={`${activeTab === 'easy' ? '' : 'max-w-7xl mx-auto px-4 py-6'}`}>
+      <main className={`${activeTab === 'easy' ? 'hidden' : 'max-w-7xl mx-auto px-4 py-6'}`}>
         {!backendConnected && backendConnected !== null && (
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
             <p className="font-medium">⚠️ Backend not connected</p>
@@ -179,12 +186,6 @@ function App() {
           />
         )}
 
-        {activeTab === 'easy' && (
-          <EasyMode 
-            onSoundGenerated={addGeneratedSound}
-          />
-        )}
-        
         {activeTab === 'generator' && (
           <Generator
             bodySample={bodySample}
