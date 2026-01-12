@@ -84,7 +84,7 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen ${activeTab === 'easy' ? 'bg-[#0f0a1a]' : 'bg-drum-bg'}`}>
+    <div className="min-h-screen bg-drum-bg">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-drum-bg/80 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4">
