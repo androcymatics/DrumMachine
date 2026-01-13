@@ -22,7 +22,6 @@ export function Sequencer({ sounds }: SequencerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
-  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(null);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBuffersRef = useRef<Map<string, AudioBuffer>>(new Map());
@@ -105,24 +104,6 @@ export function Sequencer({ sounds }: SequencerProps) {
       }
       return updated;
     });
-  }, []);
-
-  // Play a sound
-  const playSound = useCallback((soundPath: string, volume: number = 1) => {
-    if (!audioContextRef.current) return;
-    
-    const buffer = audioBuffersRef.current.get(soundPath);
-    if (!buffer) return;
-
-    const source = audioContextRef.current.createBufferSource();
-    const gainNode = audioContextRef.current.createGain();
-    
-    source.buffer = buffer;
-    gainNode.gain.value = volume;
-    
-    source.connect(gainNode);
-    gainNode.connect(audioContextRef.current.destination);
-    source.start(0);
   }, []);
 
   // Start/stop sequencer
