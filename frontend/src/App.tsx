@@ -4,10 +4,11 @@ import { Generator } from './components/Generator';
 import { EasyMode } from './components/EasyMode';
 import { Generated, GeneratedSound } from './components/Generated';
 import { Output } from './components/Output';
+import { Sequencer } from './components/Sequencer';
 import { healthCheck } from './api';
 import type { Sample } from './types';
 
-type Tab = 'library' | 'generated' | 'easy' | 'generator' | 'output';
+type Tab = 'library' | 'generated' | 'easy' | 'generator' | 'output' | 'sequencer';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('easy');
@@ -73,6 +74,7 @@ function App() {
     { id: 'easy', label: 'Drum Machine', icon: '🥁' },
     { id: 'generator', label: 'Advanced', icon: '⚡' },
     { id: 'generated', label: 'Generated', icon: '🎵', badge: generatedSounds.length || undefined },
+    { id: 'sequencer', label: 'Sequencer', icon: '🎹' },
     { id: 'library', label: 'Library', icon: '📚' },
   ];
 
@@ -185,6 +187,10 @@ function App() {
             sounds={generatedSounds}
             onClear={clearGeneratedSounds}
           />
+        )}
+
+        {activeTab === 'sequencer' && (
+          <Sequencer sounds={generatedSounds} />
         )}
 
         {activeTab === 'generator' && (
