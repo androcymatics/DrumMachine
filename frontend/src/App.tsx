@@ -59,14 +59,21 @@ function App() {
     setGeneratedSounds([]);
   }, []);
 
+  const [pendingSequencerSound, setPendingSequencerSound] = useState<GeneratedSound | null>(null);
   const sequencerRef = useRef<SequencerRef>(null);
 
   const handleSendToSequencer = useCallback((sound: GeneratedSound) => {
-    if (sequencerRef.current) {
-      sequencerRef.current.addTrackWithSound(sound);
-      setActiveTab('sequencer');
-    }
+    setPendingSequencerSound(sound);
+    setActiveTab('sequencer');
   }, []);
+
+  // Handle pending sequencer sound when sequencer mounts
+  useEffect(() => {
+    if (pendingSequencerSound && sequencerRef.current && activeTab === 'sequencer') {
+      sequencerRef.current.addTrackWithSound(pendingSequencerSound);
+      setPendingSequencerSound(null);
+    }
+  }, [pendingSequencerSound, activeTab]);
 
   useEffect(() => {
     const checkBackend = async () => {
