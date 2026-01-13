@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Library } from './components/Library';
 import { Generator } from './components/Generator';
 import { EasyMode } from './components/EasyMode';
 import { Generated, GeneratedSound } from './components/Generated';
 import { Output } from './components/Output';
-import { Sequencer } from './components/Sequencer';
+import { Sequencer, type SequencerRef } from './components/Sequencer';
 import { healthCheck } from './api';
 import type { Sample } from './types';
 
@@ -186,11 +186,12 @@ function App() {
           <Generated 
             sounds={generatedSounds}
             onClear={clearGeneratedSounds}
+            onSendToSequencer={handleSendToSequencer}
           />
         )}
 
         {activeTab === 'sequencer' && (
-          <Sequencer sounds={generatedSounds} />
+          <Sequencer ref={sequencerRef} sounds={generatedSounds} />
         )}
 
         {activeTab === 'generator' && (

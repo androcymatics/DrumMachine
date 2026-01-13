@@ -15,6 +15,7 @@ export interface GeneratedSound {
 interface GeneratedProps {
   sounds: GeneratedSound[];
   onClear: () => void;
+  onSendToSequencer?: (sound: GeneratedSound) => void;
 }
 
 const CATEGORY_ORDER: SampleCategory[] = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk'];
@@ -41,7 +42,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   other: 'border-gray-500/30 bg-gray-500/10',
 };
 
-export function Generated({ sounds, onClear }: GeneratedProps) {
+export function Generated({ sounds, onClear, onSendToSequencer }: GeneratedProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
@@ -345,25 +346,36 @@ export function Generated({ sounds, onClear }: GeneratedProps) {
                     </div>
                     
                     {/* Actions */}
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handlePlay(sound)}
-                        className={`flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all ${
-                          playingId === sound.id
-                            ? 'bg-drum-accent text-white'
-                            : 'bg-drum-elevated hover:bg-drum-accent/20 text-drum-text'
-                        }`}
-                      >
-                        {playingId === sound.id ? '⏹' : '▶'}
-                      </button>
-                      <a
-                        href={getAudioDownloadUrl(sound.path)}
-                        className="py-1.5 px-2 rounded text-xs font-medium bg-drum-elevated hover:bg-drum-accent/20 text-drum-text transition-all"
-                        download
-                        title="Download"
-                      >
-                        ⬇
-                      </a>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handlePlay(sound)}
+                          className={`flex-1 py-1.5 px-2 rounded text-xs font-medium transition-all ${
+                            playingId === sound.id
+                              ? 'bg-drum-accent text-white'
+                              : 'bg-drum-elevated hover:bg-drum-accent/20 text-drum-text'
+                          }`}
+                        >
+                          {playingId === sound.id ? '⏹' : '▶'}
+                        </button>
+                        <a
+                          href={getAudioDownloadUrl(sound.path)}
+                          className="py-1.5 px-2 rounded text-xs font-medium bg-drum-elevated hover:bg-drum-accent/20 text-drum-text transition-all"
+                          download
+                          title="Download"
+                        >
+                          ⬇
+                        </a>
+                      </div>
+                      {onSendToSequencer && (
+                        <button
+                          onClick={() => onSendToSequencer(sound)}
+                          className="w-full py-1.5 px-2 rounded text-xs font-medium bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 hover:text-orange-300 transition-all"
+                          title="Send to Sequencer"
+                        >
+                          🎹 Send to Sequencer
+                        </button>
+                      )}
                     </div>
                   </div>
                   );
