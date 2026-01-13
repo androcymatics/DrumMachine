@@ -149,6 +149,8 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
   const [error, setError] = useState<string | null>(null);
   const [generationCount, setGenerationCount] = useState(0);
   const [batchSize, setBatchSize] = useState(1);
+  const [isCustomBatchSize, setIsCustomBatchSize] = useState(false);
+  const [customBatchSize, setCustomBatchSize] = useState('5');
   const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
   const [recentSounds, setRecentSounds] = useState<RecentSound[]>(() => {
     try {
@@ -412,17 +414,68 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
       {/* Batch Size Selector */}
       <div className="flex items-center gap-2 text-sm">
         <span className="text-drum-muted">Generate</span>
-        <select
-          value={batchSize}
-          onChange={(e) => setBatchSize(Number(e.target.value))}
-          className="bg-drum-elevated text-drum-text px-3 py-1.5 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none font-semibold"
-        >
-          {BATCH_SIZES.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
+        {isCustomBatchSize ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={customBatchSize}
+              onChange={(e) => {
+                const value = e.target.value;
+                setCustomBatchSize(value);
+                const numValue = parseInt(value, 10);
+                if (!isNaN(numValue) && numValue >= 1 && numValue <= 100) {
+                  setBatchSize(numValue);
+                }
+              }}
+              onBlur={() => {
+                const numValue = parseInt(customBatchSize, 10);
+                if (isNaN(numValue) || numValue < 1) {
+                  setCustomBatchSize('1');
+                  setBatchSize(1);
+                } else if (numValue > 100) {
+                  setCustomBatchSize('100');
+                  setBatchSize(100);
+                } else {
+                  setBatchSize(numValue);
+                }
+              }}
+              className="bg-drum-elevated text-drum-text px-3 py-1.5 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none font-semibold w-20 text-center"
+            />
+            <button
+              onClick={() => {
+                setIsCustomBatchSize(false);
+                setBatchSize(1);
+              }}
+              className="text-xs text-drum-muted hover:text-drum-text transition-colors"
+              title="Back to presets"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <select
+            value={BATCH_SIZES.includes(batchSize) ? batchSize : 1}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === 'custom') {
+                setIsCustomBatchSize(true);
+                setCustomBatchSize(batchSize.toString());
+              } else {
+                setBatchSize(Number(value));
+              }
+            }}
+            className="bg-drum-elevated text-drum-text px-3 py-1.5 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none font-semibold"
+          >
+            {BATCH_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+            <option value="custom">Custom</option>
+          </select>
+        )}
         <span className="text-drum-muted">
           {selectedCategory === 'all' 
             ? `× ${ALL_CATEGORIES.length} types`
