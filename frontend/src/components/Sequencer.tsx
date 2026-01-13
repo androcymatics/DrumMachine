@@ -24,7 +24,23 @@ const DEFAULT_CATEGORIES = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk
 
 export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, ref) => {
   const [tracks, setTracks] = useState<Track[]>(() => {
-    // Initialize with 7 tracks, one for each category
+    // Try to load from localStorage first
+    try {
+      const saved = localStorage.getItem('sequencerTracks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate and restore tracks
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(track => ({
+            ...track,
+            steps: Array.isArray(track.steps) ? track.steps : new Array(STEPS).fill(false),
+          }));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load sequencer tracks:', e);
+    }
+    // Default: Initialize with 7 tracks, one for each category
     return DEFAULT_CATEGORIES.map((category, index) => ({
       id: `track-${category}-${index}`,
       name: category.charAt(0).toUpperCase() + category.slice(1),
@@ -80,6 +96,15 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
   // Keep tracksRef in sync
   useEffect(() => {
     tracksRef.current = tracks;
+  }, [tracks]);
+
+  // Save tracks to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('sequencerTracks', JSON.stringify(tracks));
+    } catch (e) {
+      console.error('Failed to save sequencer tracks:', e);
+    }
   }, [tracks]);
 
   // Add a new track
