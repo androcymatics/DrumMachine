@@ -59,6 +59,15 @@ function App() {
     setGeneratedSounds([]);
   }, []);
 
+  const sequencerRef = useRef<SequencerRef>(null);
+
+  const handleSendToSequencer = useCallback((sound: GeneratedSound) => {
+    if (sequencerRef.current) {
+      sequencerRef.current.addTrackWithSound(sound);
+      setActiveTab('sequencer');
+    }
+  }, []);
+
   useEffect(() => {
     const checkBackend = async () => {
       const connected = await healthCheck();
