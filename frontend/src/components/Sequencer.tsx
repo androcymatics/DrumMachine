@@ -10,7 +10,7 @@ interface Track {
   id: string;
   name: string;
   sound: GeneratedSound | null;
-  steps: boolean[]; // 16 steps
+  steps: boolean[]; // 32 steps
   volume: number; // 0-1
 }
 
