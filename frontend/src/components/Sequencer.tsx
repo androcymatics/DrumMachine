@@ -52,6 +52,8 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
+  const [isDraggingBpm, setIsDraggingBpm] = useState(false);
+  const bpmDragStartRef = useRef<{ x: number; initialBpm: number } | null>(null);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBuffersRef = useRef<Map<string, AudioBuffer>>(new Map());
@@ -240,6 +242,41 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
     }
   }, [isPlaying, bpm]);
 
+  // BPM drag handlers
+  const handleBpmMouseDown = useCallback((e: React.MouseEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    setIsDraggingBpm(true);
+    bpmDragStartRef.current = {
+      x: e.clientX,
+      initialBpm: bpm,
+    };
+  }, [bpm]);
+
+  useEffect(() => {
+    if (!isDraggingBpm) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!bpmDragStartRef.current) return;
+      const deltaX = e.clientX - bpmDragStartRef.current.x;
+      const sensitivity = 0.5; // BPM change per pixel
+      const newBpm = Math.round(bpmDragStartRef.current.initialBpm + deltaX * sensitivity);
+      setBpm(Math.max(60, Math.min(200, newBpm)));
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingBpm(false);
+      bpmDragStartRef.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingBpm]);
+
   // Keyboard shortcut: spacebar to play/stop
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -284,8 +321,10 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
               max="200"
               value={bpm}
               onChange={(e) => setBpm(Math.max(60, Math.min(200, parseInt(e.target.value) || 120)))}
-              className="bg-drum-elevated text-drum-text px-3 py-1.5 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none w-20 text-center"
+              onMouseDown={handleBpmMouseDown}
+              className="bg-drum-elevated text-drum-text px-3 py-1.5 rounded-lg border border-drum-border focus:border-orange-500 focus:outline-none w-20 text-center cursor-ns-resize select-none"
               disabled={isPlaying}
+              style={{ userSelect: 'none' }}
             />
           </div>
           <button
