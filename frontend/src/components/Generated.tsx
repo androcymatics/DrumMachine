@@ -370,10 +370,10 @@ export function Generated({ sounds, onClear, onSendToSequencer }: GeneratedProps
                       {onSendToSequencer && (
                         <button
                           onClick={() => onSendToSequencer(sound)}
-                          className="w-full py-1.5 px-2 rounded text-xs font-medium bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 hover:text-orange-300 transition-all"
+                          className="w-full py-1 px-2 rounded text-xs font-medium bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 hover:text-orange-300 transition-all"
                           title="Send to Sequencer"
                         >
-                          🎹 Send to Sequencer
+                          Send to Sequencer
                         </button>
                       )}
                     </div>

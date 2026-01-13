@@ -120,7 +120,7 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
     });
   }, []);
 
-  // Add a track with a sound (exposed via ref)
+  // Add a track with a sound (exposed via ref) - adds at the top
   const addTrackWithSound = useCallback((sound: GeneratedSound) => {
     const newTrack: Track = {
       id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -129,7 +129,7 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
       steps: new Array(STEPS).fill(false),
       volume: 1,
     };
-    setTracks(prev => [...prev, newTrack]);
+    setTracks(prev => [newTrack, ...prev]);
   }, []);
 
   // Expose methods via ref
