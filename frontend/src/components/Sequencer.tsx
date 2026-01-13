@@ -14,7 +14,7 @@ interface Track {
   volume: number; // 0-1
 }
 
-const STEPS = 16;
+const STEPS = 32;
 const DEFAULT_BPM = 120;
 
 export function Sequencer({ sounds }: SequencerProps) {
@@ -150,6 +150,24 @@ export function Sequencer({ sounds }: SequencerProps) {
       }, stepDuration);
     }
   }, [isPlaying, bpm]);
+
+  // Keyboard shortcut: spacebar to play/stop
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't handle if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+        return;
+      }
+      
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        togglePlay();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [togglePlay]);
 
   // Cleanup on unmount
   useEffect(() => {
