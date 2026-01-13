@@ -28,6 +28,7 @@ export function Sequencer({ sounds }: SequencerProps) {
   const audioBuffersRef = useRef<Map<string, AudioBuffer>>(new Map());
   const intervalRef = useRef<number | null>(null);
   const stepIntervalRef = useRef<number | null>(null);
+  const tracksRef = useRef<Track[]>([]);
 
   // Initialize audio context
   useEffect(() => {
@@ -62,6 +63,11 @@ export function Sequencer({ sounds }: SequencerProps) {
     
     loadBuffers();
   }, [sounds]);
+
+  // Keep tracksRef in sync
+  useEffect(() => {
+    tracksRef.current = tracks;
+  }, [tracks]);
 
   // Add a new track
   const addTrack = useCallback(() => {
@@ -144,22 +150,19 @@ export function Sequencer({ sounds }: SequencerProps) {
         setCurrentStep(prev => {
           const nextStep = (prev + 1) % STEPS;
           // Play sounds for this step
-          setTracks(currentTracks => {
-            currentTracks.forEach(track => {
-              if (track.steps[nextStep] && track.sound) {
-                const buffer = audioBuffersRef.current.get(track.sound.path);
-                if (buffer && audioContextRef.current) {
-                  const source = audioContextRef.current.createBufferSource();
-                  const gainNode = audioContextRef.current.createGain();
-                  source.buffer = buffer;
-                  gainNode.gain.value = track.volume;
-                  source.connect(gainNode);
-                  gainNode.connect(audioContextRef.current.destination);
-                  source.start(0);
-                }
+          tracksRef.current.forEach(track => {
+            if (track.steps[nextStep] && track.sound) {
+              const buffer = audioBuffersRef.current.get(track.sound.path);
+              if (buffer && audioContextRef.current) {
+                const source = audioContextRef.current.createBufferSource();
+                const gainNode = audioContextRef.current.createGain();
+                source.buffer = buffer;
+                gainNode.gain.value = track.volume;
+                source.connect(gainNode);
+                gainNode.connect(audioContextRef.current.destination);
+                source.start(0);
               }
-            });
-            return currentTracks; // Don't actually change state
+            }
           });
           return nextStep;
         });
