@@ -117,7 +117,7 @@ export function Sequencer({ sounds }: SequencerProps) {
   }, []);
 
   // Start/stop sequencer
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     if (isPlaying) {
       // Stop
       if (intervalRef.current) {
@@ -131,11 +131,40 @@ export function Sequencer({ sounds }: SequencerProps) {
       setIsPlaying(false);
       setCurrentStep(0);
     } else {
+      // Resume audio context if suspended (required for browser autoplay policy)
+      if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+        try {
+          await audioContextRef.current.resume();
+        } catch (error) {
+          console.error('Failed to resume audio context:', error);
+        }
+      }
+      
       // Start
       setIsPlaying(true);
       setCurrentStep(0);
       
       const stepDuration = (60 / bpm / 4) * 1000; // 16th notes
+      
+      // Play first step immediately
+      tracksRef.current.forEach(track => {
+        if (track.steps[0] && track.sound) {
+          const buffer = audioBuffersRef.current.get(track.sound.path);
+          if (buffer && audioContextRef.current) {
+            try {
+              const source = audioContextRef.current.createBufferSource();
+              const gainNode = audioContextRef.current.createGain();
+              source.buffer = buffer;
+              gainNode.gain.value = track.volume;
+              source.connect(gainNode);
+              gainNode.connect(audioContextRef.current.destination);
+              source.start(0);
+            } catch (error) {
+              console.error('Failed to play sound:', error);
+            }
+          }
+        }
+      });
       
       intervalRef.current = window.setInterval(() => {
         setCurrentStep(prev => {
@@ -145,13 +174,17 @@ export function Sequencer({ sounds }: SequencerProps) {
             if (track.steps[nextStep] && track.sound) {
               const buffer = audioBuffersRef.current.get(track.sound.path);
               if (buffer && audioContextRef.current) {
-                const source = audioContextRef.current.createBufferSource();
-                const gainNode = audioContextRef.current.createGain();
-                source.buffer = buffer;
-                gainNode.gain.value = track.volume;
-                source.connect(gainNode);
-                gainNode.connect(audioContextRef.current.destination);
-                source.start(0);
+                try {
+                  const source = audioContextRef.current.createBufferSource();
+                  const gainNode = audioContextRef.current.createGain();
+                  source.buffer = buffer;
+                  gainNode.gain.value = track.volume;
+                  source.connect(gainNode);
+                  gainNode.connect(audioContextRef.current.destination);
+                  source.start(0);
+                } catch (error) {
+                  console.error('Failed to play sound:', error);
+                }
               }
             }
           });
