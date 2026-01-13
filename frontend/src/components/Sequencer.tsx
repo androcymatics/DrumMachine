@@ -120,6 +120,23 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
     });
   }, []);
 
+  // Add a track with a sound (exposed via ref)
+  const addTrackWithSound = useCallback((sound: GeneratedSound) => {
+    const newTrack: Track = {
+      id: `track-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: sound.name,
+      sound: sound,
+      steps: new Array(STEPS).fill(false),
+      volume: 1,
+    };
+    setTracks(prev => [...prev, newTrack]);
+  }, []);
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    addTrackWithSound,
+  }), [addTrackWithSound]);
+
   // Start/stop sequencer
   const togglePlay = useCallback(async () => {
     if (isPlaying) {
