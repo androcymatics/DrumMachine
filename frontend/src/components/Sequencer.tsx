@@ -247,7 +247,7 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
     e.preventDefault();
     setIsDraggingBpm(true);
     bpmDragStartRef.current = {
-      x: e.clientX,
+      x: e.clientY, // Store Y position for vertical dragging
       initialBpm: bpm,
     };
   }, [bpm]);
@@ -257,9 +257,9 @@ export const Sequencer = forwardRef<SequencerRef, SequencerProps>(({ sounds }, r
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!bpmDragStartRef.current) return;
-      const deltaX = e.clientX - bpmDragStartRef.current.x;
+      const deltaY = bpmDragStartRef.current.x - e.clientY; // Reverse so dragging up increases BPM
       const sensitivity = 0.5; // BPM change per pixel
-      const newBpm = Math.round(bpmDragStartRef.current.initialBpm + deltaX * sensitivity);
+      const newBpm = Math.round(bpmDragStartRef.current.initialBpm + deltaY * sensitivity);
       setBpm(Math.max(60, Math.min(200, newBpm)));
     };
 
