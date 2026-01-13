@@ -16,9 +16,19 @@ interface Track {
 
 const STEPS = 32;
 const DEFAULT_BPM = 120;
+const DEFAULT_CATEGORIES = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk'];
 
 export function Sequencer({ sounds }: SequencerProps) {
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [tracks, setTracks] = useState<Track[]>(() => {
+    // Initialize with 7 tracks, one for each category
+    return DEFAULT_CATEGORIES.map((category, index) => ({
+      id: `track-${category}-${index}`,
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      sound: null,
+      steps: new Array(STEPS).fill(false),
+      volume: 1,
+    }));
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [bpm, setBpm] = useState(DEFAULT_BPM);
