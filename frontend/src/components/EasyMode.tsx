@@ -221,6 +221,8 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
 
   // Ref to track current index for keyboard navigation
   const keyboardIndexRef = useRef<number | null>(null);
+  const recentsScrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const recentItemRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   // Keyboard navigation for recents (up/down arrows)
   useEffect(() => {
@@ -251,6 +253,16 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [recentSounds.length, playRecentSound]);
+
+  // Auto-scroll recents list when navigating with keyboard
+  useEffect(() => {
+    if (playingRecentIndex !== null && recentsScrollContainerRef.current) {
+      const itemElement = recentItemRefs.current.get(playingRecentIndex);
+      if (itemElement) {
+        itemElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [playingRecentIndex]);
 
   const handleGenerate = async () => {
     // Trigger click animation
@@ -534,10 +546,17 @@ export function EasyMode({ onGenerated, onSoundGenerated, onViewAll }: EasyModeP
             </div>
             
             {/* Recents List */}
-            <div className="max-h-80 overflow-y-auto">
+            <div ref={recentsScrollContainerRef} className="max-h-80 overflow-y-auto">
               {recentSounds.map((sound, index) => (
                 <div
                   key={sound.path}
+                  ref={(el) => {
+                    if (el) {
+                      recentItemRefs.current.set(index, el);
+                    } else {
+                      recentItemRefs.current.delete(index);
+                    }
+                  }}
                   className={`flex items-center gap-2 px-3 py-2 border-b border-drum-border/20 transition-all ${
                     playingRecentIndex === index 
                       ? 'bg-orange-500/15' 
