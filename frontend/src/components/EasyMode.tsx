@@ -134,7 +134,7 @@ const DISPLAY_CATEGORIES: (SampleCategory | 'all')[] = ['kick', 'snare', 'hat', 
 // Categories to pick from when 'all' is selected
 const ALL_CATEGORIES: SampleCategory[] = ['kick', 'snare', 'hat', 'clap', 'perc', '808', 'donk'];
 
-const BATCH_SIZES = [1, 2, 3, 5, 10];
+const BATCH_SIZES = [1, 2, 3, 5, 10, 20];
 const MAX_RECENTS = 20;
 
 interface RecentSound {
